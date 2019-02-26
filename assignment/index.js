@@ -87,6 +87,7 @@ function main() {
 
     var red  = [1, 0, 0];
     var blue = [0, 0, 1];
+    var green = [0, 1, 0];
     var d = unit_cube({
         front: red,
         right: red,
@@ -117,6 +118,22 @@ function main() {
         modelMatrix.translate(1, 0, 0);
     });
 
+    var d3 = unit_cube({
+        front: green,
+        right: green,
+        up:    green,
+        left:  green,
+        down:  green,
+        back:  green,
+    });
+    d3.transform(function(modelMatrix) {
+        modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
+        modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
+        modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
+        modelMatrix.translate(3, 0, 0);
+    });
+
     d.draw(gl);
     d2.draw(gl);
+    d3.draw(gl);
 }
