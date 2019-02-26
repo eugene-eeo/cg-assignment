@@ -133,7 +133,26 @@ function main() {
         modelMatrix.translate(3, 0, 0);
     });
 
+    var prism = unit_prism({
+        front: [1, 1, 0],
+        back:  [1, 1, 0],
+        slope: [1, 1, 0],
+        base:  [1, 1, 0],
+        side:  [1, 1, 0],
+    });
+    prism.transform(function(mm) {
+        mm.rotate(20,  1, 0, 0); // Rotate along x
+        mm.rotate(50, 0, 1, 0); // Rotate along y
+        mm.rotate(25, 0, 0, 1); // Rotate along z
+        mm.rotate(90, 0, 1, 0); // Rotate along y
+        mm.translate(-1, 1, 0);
+        mm.translate(0, 0, 1);
+        mm.scale(2, 1, 3);
+        //mm.scale(0, 1, 0);
+    });
+
     d.draw(gl);
     d2.draw(gl);
     d3.draw(gl);
+    prism.draw(gl);
 }

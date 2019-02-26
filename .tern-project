@@ -1,0 +1,6 @@
+{
+  "libs": [
+    "browser"
+  ],
+  "loadEagerly": ["lib/*.js", "assignment/helpers/*.js"]
+}
