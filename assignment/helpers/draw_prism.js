@@ -1,4 +1,4 @@
-function unit_prism(face_colors) {
+function unit_prism(color) {
     // Create a prism
     //      v4
     //     /| \
@@ -18,11 +18,11 @@ function unit_prism(face_colors) {
     ]);
 
     var colors = [];
-    for (var i = 3; i--;) colors = colors.concat(face_colors.front);
-    for (var i = 3; i--;) colors = colors.concat(face_colors.back);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.slope);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.base);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.side);
+    for (var i = 18; i--;) {
+        colors.push(color[0]);
+        colors.push(color[1]);
+        colors.push(color[2]);
+    }
     colors = new Float32Array(colors);
 
     // 1/sqrt(2) ~= 0.71

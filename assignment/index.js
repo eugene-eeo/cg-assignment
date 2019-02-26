@@ -34,26 +34,154 @@ void main() {
 }
 `;
 
-function main() {
-    // Retrieve <canvas> element
-    var canvas = document.getElementById('webgl');
+var g_canvas = document.getElementById('webgl');
+var g_drawables = [];
+var g_xAngle = 0;
+var g_yAngle = 0;
+var ANGLE_STEP = 3.0;
 
+function main() {
     // Get the rendering context for WebGL
-    var gl = getWebGLContext(canvas);
+    var gl = getWebGLContext(g_canvas);
     if (!gl) {
         console.log('Failed to get the rendering context for WebGL');
         return;
     }
-
     // Initialize shaders
     if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
         console.log('Failed to intialize shaders.');
         return;
     }
-
     // Set clear color and enable hidden surface removal
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
+
+    var brown      = [130/255,110/255,87/255];
+    var dark_brown = [107/255, 68/255,58/255];
+
+    var base1 = unit_cube(brown).transform(mm => {
+        mm.scale(5, 3, 15);
+        mm.translate(2, 0, -0.335);
+    });
+
+    var base2 = unit_cube(brown).transform(mm => {
+        mm.scale(5, 3, 15);
+        mm.translate(-1, 0, -0.335);
+    });
+
+    var base3 = unit_cube(brown).transform(mm => {
+        mm.scale(5, 2.5, 14);
+        mm.translate(-0, -0.2, -0.335);
+    });
+
+    var glass = unit_cube([0, 0, 1]).transform(mm => {
+        mm.scale(11.5, 2.20, 13.5);
+        mm.translate(0.205, 1.5, -0.35);
+    });
+
+    var entrace_roof = unit_cube([0.25, 0.25, 0.25]).transform(mm => {
+        mm.translate(2.5, 1.25, 10);
+        mm.scale(2.86, 0.25, 3.50);
+    });
+
+    var entrace_glass = unit_cube([0, 0, 1]).transform(mm => {
+        mm.translate(2.5, -1.0, 10.5);
+        mm.scale(2.5, 2.0, 2.15);
+    });
+
+    var ramp_slope = unit_prism(brown).transform(mm => {
+        mm.translate(10, -3, 11);
+        mm.scale(5, 0.75, 1);
+    });
+
+    var ramp_slab = unit_cube(brown).transform(mm => {
+        mm.translate(9, -2.63, 11);
+        mm.scale(1.0, 0.375, 1);
+    });
+
+    var pt = unit_cube(dark_brown);
+    pt.transform(mm => {
+        mm.scale(0.1, 4.5, 0.125);
+    });
+
+    // Front left and right pillars
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -10,  1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -9.6, 1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.1, 1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.5, 1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5.1,      1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5.5,      1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(10,       1.5, 10.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(9.6,      1.5, 10.1)));
+
+    // Back left and right pillars
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -10,  1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -9.6, 1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.1, 1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.5, 1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5.1,      1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5.5,      1.5, -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(10,       1.5,  -20.1)));
+    g_drawables.push(pt.clone().transform(m => m.translate(9.6,      1.5, -20.1)));
+
+    // Right side pillars
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -12)));
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -12.4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -4.4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5,  4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5,  4.4)));
+
+    // Left side pillars
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -12)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -12.4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -4.4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5,  4)));
+    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5,  4.4)));
+
+    g_drawables.push(base1);
+    g_drawables.push(base2);
+    g_drawables.push(base3);
+    g_drawables.push(glass);
+    g_drawables.push(entrace_roof);
+    g_drawables.push(entrace_glass);
+    g_drawables.push(ramp_slope);
+    g_drawables.push(ramp_slab);
+    draw(gl);
+    document.onkeydown = function(ev) {
+        keydown(ev, gl);
+    };
+}
+
+function keydown(ev, gl) {
+  switch (ev.keyCode) {
+    case 40: // Up arrow key -> the positive rotation of arm1 around the y-axis
+      g_xAngle = (g_xAngle + ANGLE_STEP) % 360;
+      break;
+    case 38: // Down arrow key -> the negative rotation of arm1 around the y-axis
+      g_xAngle = (g_xAngle - ANGLE_STEP) % 360;
+      break;
+    case 39: // Right arrow key -> the positive rotation of arm1 around the y-axis
+      g_yAngle = (g_yAngle + ANGLE_STEP) % 360;
+      break;
+    case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
+      g_yAngle = (g_yAngle - ANGLE_STEP) % 360;
+      break;
+    default: return; // Skip drawing at no effective action
+  }
+
+  // Draw the scene
+  draw(gl);
+}
+
+function draw(gl) {
+    var width = gl.canvas.clientWidth;
+    var height = gl.canvas.clientHeight;
+    if (gl.canvas.width != width || gl.canvas.height != height) {
+        gl.canvas.width = width;
+        gl.canvas.height = height;
+    }
 
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -79,80 +207,16 @@ function main() {
     gl.uniform3fv(u_LightDirection, lightDirection.elements);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(0, 0, 15, 0, 0, -100, 0, 1, 0);
-    projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
+    viewMatrix.setLookAt(0, 0, 50, 0, 0, -100, 0, 1, 0);
+    viewMatrix.rotate(g_xAngle, 1, 0, 0);
+    viewMatrix.rotate(g_yAngle, 0, 1, 0);
+
+    projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
     gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
-    var red  = [1, 0, 0];
-    var blue = [0, 0, 1];
-    var green = [0, 1, 0];
-    var d = unit_cube({
-        front: red,
-        right: red,
-        up:    red,
-        left:  red,
-        down:  red,
-        back:  red,
+    g_drawables.forEach(function(d) {
+        d.draw(gl);
     });
-    d.transform(function(modelMatrix) {
-        modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
-        modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
-        modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
-        modelMatrix.translate(-1, 0, 0);
-    });
-
-    var d2 = unit_cube({
-        front: blue,
-        right: blue,
-        up:    blue,
-        left:  blue,
-        down:  blue,
-        back:  blue,
-    });
-    d2.transform(function(modelMatrix) {
-        modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
-        modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
-        modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
-        modelMatrix.translate(1, 0, 0);
-    });
-
-    var d3 = unit_cube({
-        front: green,
-        right: green,
-        up:    green,
-        left:  green,
-        down:  green,
-        back:  green,
-    });
-    d3.transform(function(modelMatrix) {
-        modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
-        modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
-        modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
-        modelMatrix.translate(3, 0, 0);
-    });
-
-    var prism = unit_prism({
-        front: [1, 1, 0],
-        back:  [1, 1, 0],
-        slope: [1, 1, 0],
-        base:  [1, 1, 0],
-        side:  [1, 1, 0],
-    });
-    prism.transform(function(mm) {
-        mm.rotate(20,  1, 0, 0); // Rotate along x
-        mm.rotate(50, 0, 1, 0); // Rotate along y
-        mm.rotate(25, 0, 0, 1); // Rotate along z
-        mm.rotate(90, 0, 1, 0); // Rotate along y
-        mm.translate(-1, 1, 0);
-        mm.translate(0, 0, 1);
-        mm.scale(2, 1, 3);
-        //mm.scale(0, 1, 0);
-    });
-
-    d.draw(gl);
-    d2.draw(gl);
-    d3.draw(gl);
-    prism.draw(gl);
 }

@@ -16,18 +16,29 @@ function initArrayBuffer(gl, attribute, data, num, type) {
 
 
 function drawable(vertices, colors, normals, indices) {
-    this.modelMatrix = new Matrix4();
-    this.modelMatrix.setIdentity();
-    this.g_normalMatrix = new Matrix4();
-    // shape data
     this.vertices = vertices;
     this.colors   = colors;
     this.normals  = normals;
     this.indices  = indices;
+    this.transforms = [];
+    // cache
+    this.cached = false;
+    this._modelMatrix  = new Matrix4();
+    this._normalMatrix = new Matrix4();
 }
 
+
+drawable.prototype.clone = function(fn) {
+    var d = new drawable(this.vertices, this.colors, this.normals, this.indices);
+    d.transforms = this.transforms.concat([]);
+    return d;
+};
+
+
 drawable.prototype.transform = function(fn) {
-    fn(this.modelMatrix);
+    this.transforms.push(fn);
+    this.cached = false;
+    return this;
 };
 
 
@@ -36,17 +47,24 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
     if (!initArrayBuffer(gl, 'a_Color',    this.colors,   3, gl.FLOAT)) return false;
     if (!initArrayBuffer(gl, 'a_Normal',   this.normals,  3, gl.FLOAT)) return false;
-
-    // recalculate the normal transform matrix
-    this.g_normalMatrix.setInverseOf(this.modelMatrix);
-    this.g_normalMatrix.transpose();
+    // recalculate if necessary
+    if (!this.cached) {
+        this._modelMatrix.setIdentity();
+        for (var i = this.transforms.length - 1; i >= 0; i--) {
+            this.transforms[i](this._modelMatrix);
+        }
+        // recalculate the normal transform matrix
+        this._normalMatrix.setInverseOf(this._modelMatrix);
+        this._normalMatrix.transpose();
+        this.cached = true;
+    }
 
     // Write model matrix and normals
     var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
     var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
 
-    gl.uniformMatrix4fv(u_ModelMatrix, false, this.modelMatrix.elements);
-    gl.uniformMatrix4fv(u_NormalMatrix, false, this.g_normalMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, this._modelMatrix.elements);
+    gl.uniformMatrix4fv(u_NormalMatrix, false, this._normalMatrix.elements);
 
     // index buffer
     var indexBuffer = gl.createBuffer();

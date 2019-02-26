@@ -1,4 +1,4 @@
-function unit_cube(face_colors) {
+function unit_cube(color) {
     // Create a cube
     //    v6----- v5
     //   /|      /|
@@ -27,12 +27,11 @@ function unit_cube(face_colors) {
     //]);
     //
     var colors = [];
-    for (var i = 4; i--;) colors = colors.concat(face_colors.front);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.right);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.up);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.left);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.down);
-    for (var i = 4; i--;) colors = colors.concat(face_colors.back);
+    for (var i = 24; i--;) {
+        colors.push(color[0]);
+        colors.push(color[1]);
+        colors.push(color[2]);
+    }
     colors = new Float32Array(colors);
 
     var normals = new Float32Array([    // Normal
