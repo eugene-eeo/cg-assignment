@@ -96,10 +96,10 @@ function main() {
         back:  red,
     });
     d.transform(function(modelMatrix) {
-        modelMatrix.translate(-1, 0, 0);
         modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
         modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
         modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
+        modelMatrix.translate(-1, 0, 0);
     });
 
     var d2 = unit_cube({
@@ -111,10 +111,10 @@ function main() {
         back:  blue,
     });
     d2.transform(function(modelMatrix) {
-        modelMatrix.translate(1, 0, 0);
         modelMatrix.rotate(20, 1, 0, 0); // Rotate along x
         modelMatrix.rotate(50, 0, 1, 0); // Rotate along y
         modelMatrix.rotate(25, 0, 0, 1); // Rotate along z
+        modelMatrix.translate(1, 0, 0);
     });
 
     d.draw(gl);

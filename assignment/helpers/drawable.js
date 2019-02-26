@@ -31,11 +31,6 @@ drawable.prototype.transform = function(fn) {
 };
 
 
-drawable.prototype.getNumVertices = function() {
-    return this.indices.length;
-};
-
-
 drawable.prototype.writeToVertexBuffer = function(gl) {
     // Write the vertex property to buffers (coordinates, colors and normals)
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
@@ -66,5 +61,5 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
 
 drawable.prototype.draw = function(gl) {
     this.writeToVertexBuffer(gl);
-    gl.drawElements(gl.TRIANGLES, this.getNumVertices(), gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_BYTE, 0);
 };
