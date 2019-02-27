@@ -74,6 +74,11 @@ function main() {
         mm.translate(-0, -0.2, -0.335);
     });
 
+    var roof = make_frustum([0.1, 0.1, 0.1]).transform(mm => {
+        mm.translate(2.5, 5.5, -4);
+        mm.scale(10, 2, 13);
+    });
+
     var glass = unit_cube([0, 0, 1]).transform(mm => {
         mm.scale(11.5, 2.20, 13.5);
         mm.translate(0.205, 1.5, -0.35);
@@ -99,50 +104,53 @@ function main() {
         mm.scale(1.0, 0.375, 1);
     });
 
-    var pt = unit_cube(dark_brown);
-    pt.transform(mm => {
-        mm.scale(0.1, 4.5, 0.125);
+    var pillar_template = unit_cube(dark_brown);
+    pillar_template.transform(mm => {
+        mm.scale(0.1, 4.45, 0.125);
     });
 
-    // Front left and right pillars
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -10,  1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -9.6, 1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.1, 1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.5, 1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5.1,      1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5.5,      1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(10,       1.5, 10.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(9.6,      1.5, 10.1)));
+    g_drawables = g_drawables.concat(bulk_translate(pillar_template, [
+        // Front left and right pillars
+        [5 + -10,  1.45, 10.1],
+        [5 + -9.6, 1.45, 10.1],
+        [5 + -5.1, 1.45, 10.1],
+        [5 + -5.5, 1.45, 10.1],
+        [5.1,      1.45, 10.1],
+        [5.5,      1.45, 10.1],
+        [10,       1.45, 10.1],
+        [9.6,      1.45, 10.1],
 
-    // Back left and right pillars
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -10,  1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -9.6, 1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.1, 1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -5.5, 1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5.1,      1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5.5,      1.5, -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(10,       1.5,  -20.1)));
-    g_drawables.push(pt.clone().transform(m => m.translate(9.6,      1.5, -20.1)));
+        // Back left and right pillars
+        [5 + -10,  1.45, -20.1],
+        [5 + -9.6, 1.45, -20.1],
+        [5 + -5.1, 1.45, -20.1],
+        [5 + -5.5, 1.45, -20.1],
+        [5.1,      1.45, -20.1],
+        [5.5,      1.45, -20.1],
+        [10,       1.45, -20.1],
+        [9.6,      1.45, -20.1],
 
-    // Right side pillars
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -12)));
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -12.4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5, -4.4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5,  4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(15.1, 1.5,  4.4)));
+        // Right side pillars
+        [15.1, 1.45, -12],
+        [15.1, 1.45, -12.4],
+        [15.1, 1.45, -4],
+        [15.1, 1.45, -4.4],
+        [15.1, 1.45,  4],
+        [15.1, 1.45,  4.4],
 
-    // Left side pillars
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -12)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -12.4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5, -4.4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5,  4)));
-    g_drawables.push(pt.clone().transform(m => m.translate(5 + -15.1, 1.5,  4.4)));
+        // Left side pillars
+        [5 + -15.1, 1.45, -12],
+        [5 + -15.1, 1.45, -12.4],
+        [5 + -15.1, 1.45, -4],
+        [5 + -15.1, 1.45, -4.4],
+        [5 + -15.1, 1.45,  4],
+        [5 + -15.1, 1.45,  4.4],
+    ]));
 
     g_drawables.push(base1);
     g_drawables.push(base2);
     g_drawables.push(base3);
+    g_drawables.push(roof);
     g_drawables.push(glass);
     g_drawables.push(entrace_roof);
     g_drawables.push(entrace_glass);

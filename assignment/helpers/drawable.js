@@ -81,3 +81,13 @@ drawable.prototype.draw = function(gl) {
     this.writeToVertexBuffer(gl);
     gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_BYTE, 0);
 };
+
+
+function bulk_translate(template, translates) {
+    return translates.map(function(xyz) {
+        var x = xyz[0];
+        var y = xyz[1];
+        var z = xyz[2];
+        return template.clone().transform(m => m.translate(x, y, z));
+    });
+}
