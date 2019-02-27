@@ -76,7 +76,7 @@ function main() {
 
     var roof = make_frustum([0.1, 0.1, 0.1]).transform(mm => {
         mm.translate(2.5, 5.5, -4);
-        mm.scale(10, 2, 13);
+        mm.scale(10, 2, 11.8);
     });
 
     var glass = unit_cube([0, 0, 1]).transform(mm => {
@@ -108,6 +108,53 @@ function main() {
     pillar_template.transform(mm => {
         mm.scale(0.1, 4.45, 0.125);
     });
+
+    var pillar2_template = unit_cube([0.1, 0.1, 0.1]);
+    pillar2_template.transform(mm => {
+        mm.scale(0.1, 2, 0.125);
+    });
+
+    // Front
+    g_drawables = g_drawables.concat(bulk_translate(
+        pillar2_template.clone().transform(mm => mm.rotate(30, 1, 0, 0)),
+        [
+            [5 + -9.8,  4, 10.5],
+            [5 + -5.3,  4, 10.5],
+            [5.3,       4, 10.5],
+            [9.8,       4, 10.5],
+        ]
+    ));
+
+    // Back
+    g_drawables = g_drawables.concat(bulk_translate(
+        pillar2_template.clone().transform(mm => mm.rotate(-30, 1, 0, 0)),
+        [
+            [5 + -9.8,  4, -20.0],
+            [5 + -5.3,  4, -20.0],
+            [5.3,       4, -20.0],
+            [9.8,       4, -20.0],
+        ]
+    ));
+
+    // Left side
+    g_drawables = g_drawables.concat(bulk_translate(
+        pillar2_template.clone().transform(mm => mm.rotate(-15, 0, 0, 1)),
+        [
+            [15.2,  4, -12.2],
+            [15.2,  4, -4.2],
+            [15.2,  4, +4.2],
+        ]
+    ));
+
+    // Right side
+    g_drawables = g_drawables.concat(bulk_translate(
+        pillar2_template.clone().transform(mm => mm.rotate(+15, 0, 0, 1)),
+        [
+            [5 + -15.2,  4, -12.2],
+            [5 + -15.2,  4, -4.2],
+            [5 + -15.2,  4, +4.2],
+        ]
+    ));
 
     g_drawables = g_drawables.concat(bulk_translate(pillar_template, [
         // Front left and right pillars
