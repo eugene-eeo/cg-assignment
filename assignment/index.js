@@ -10,27 +10,39 @@ uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjMatrix;
 
-uniform vec3 u_LightColor;
-uniform vec3 u_LightDirection;
-
 varying vec4 v_Color;
+varying vec3 v_Position;
+varying vec3 v_Normal;
 
 void main() {
     gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * a_Position;
-    vec3 normal = normalize((u_NormalMatrix * a_Normal).xyz);
-    float nDotL = max(dot(normal, u_LightDirection), 0.0);
-
-    vec3 diffuse = u_LightColor * a_Color.rgb * nDotL;
-    v_Color = vec4(diffuse, a_Color.a);
+    v_Position  = vec3(gl_Position);
+    v_Normal    = normalize((u_NormalMatrix * a_Normal).xyz);
+    v_Color = a_Color;
 }
 `;
 
 // Fragment shader program
 var FSHADER_SOURCE = `
 precision mediump float;
+
+uniform vec3 u_LightColor;
+uniform vec3 u_AmbientLight;
+uniform vec3 u_LightDirection;
+
 varying vec4 v_Color;
+varying vec3 v_Position;
+varying vec3 v_Normal;
+
 void main() {
-    gl_FragColor = v_Color;
+    vec3 normal = normalize(v_Normal);
+    vec3 lightDirection = normalize(u_LightDirection - v_Position);
+    float nDotL = max(dot(lightDirection, normal), 0.0);
+    vec3 diffuse;
+    vec3 ambient;
+    diffuse = u_LightColor * v_Color.rgb * nDotL;
+    ambient = u_AmbientLight * v_Color.rgb;
+    gl_FragColor = vec4(diffuse + ambient, v_Color.a);
 }
 `;
 
@@ -192,6 +204,12 @@ function main() {
         [5 + -15.1, 1.45,  4.4],
     ]));
 
+    var emergency_exit_door = unit_cube([0, 0, 0]);
+    emergency_exit_door.transform(mm => {
+        mm.translate(9 - 0.30, -1, 10);
+        mm.scale(0.70, 1.70, 0.125);
+    });
+
     var entrance_door_left = unit_cube([1, 0, 0]);
     entrance_door_left.transform(mm => {
         mm.translate(1.5, -1, 12.625);
@@ -245,6 +263,7 @@ function main() {
     g_drawables.push(entrance_glass);
     g_drawables.push(entrance_door_left);
     g_drawables.push(entrance_door_right);
+    g_drawables.push(emergency_exit_door);
     g_drawables.push(ramp_slope);
     g_drawables.push(ramp_slab);
     draw(gl);
@@ -289,6 +308,7 @@ function draw(gl) {
     var u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
     var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
     var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
+    var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
     var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
 
     if (!u_ViewMatrix || !u_ProjMatrix || !u_LightColor || !u_LightDirection) { 
@@ -301,12 +321,11 @@ function draw(gl) {
 
     // Set Light color and direction
     gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
-    var lightDirection = new Vector3([0.5, 3.0, 4.0]);
-    lightDirection.normalize();
-    gl.uniform3fv(u_LightDirection, lightDirection.elements);
+    gl.uniform3f(u_LightDirection, 10, 5, 80);
+    gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(0, 0, 50, 0, 0, -100, 0, 1, 0);
+    viewMatrix.setLookAt(0, 0, 60, 0, 0, -100, 0, 1, 0);
     viewMatrix.rotate(g_xAngle, 1, 0, 0);
     viewMatrix.rotate(g_yAngle, 0, 1, 0);
 
