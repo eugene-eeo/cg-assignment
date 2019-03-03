@@ -40,6 +40,10 @@ var g_xAngle = 0;
 var g_yAngle = 0;
 var ANGLE_STEP = 3.0;
 
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
+
 function main() {
     // Get the rendering context for WebGL
     var gl = getWebGLContext(g_canvas);
@@ -84,12 +88,12 @@ function main() {
         mm.translate(0.205, 1.5, -0.35);
     });
 
-    var entrace_roof = unit_cube([0.25, 0.25, 0.25]).transform(mm => {
+    var entrance_roof = unit_cube([0.25, 0.25, 0.25]).transform(mm => {
         mm.translate(2.5, 1.25, 10);
         mm.scale(2.86, 0.25, 3.50);
     });
 
-    var entrace_glass = unit_cube([0, 0, 1]).transform(mm => {
+    var entrance_glass = unit_cube([0, 0, 1]).transform(mm => {
         mm.translate(2.5, -1.0, 10.5);
         mm.scale(2.5, 2.0, 2.15);
     });
@@ -119,8 +123,6 @@ function main() {
         pillar2_template.clone().transform(mm => mm.rotate(30, 1, 0, 0)),
         [
             [5 + -9.8,  4, 10.5],
-            [5 + -5.3,  4, 10.5],
-            [5.3,       4, 10.5],
             [9.8,       4, 10.5],
         ]
     ));
@@ -130,8 +132,6 @@ function main() {
         pillar2_template.clone().transform(mm => mm.rotate(-30, 1, 0, 0)),
         [
             [5 + -9.8,  4, -20.0],
-            [5 + -5.3,  4, -20.0],
-            [5.3,       4, -20.0],
             [9.8,       4, -20.0],
         ]
     ));
@@ -141,7 +141,6 @@ function main() {
         pillar2_template.clone().transform(mm => mm.rotate(-15, 0, 0, 1)),
         [
             [15.2,  4, -12.2],
-            [15.2,  4, -4.2],
             [15.2,  4, +4.2],
         ]
     ));
@@ -151,7 +150,6 @@ function main() {
         pillar2_template.clone().transform(mm => mm.rotate(+15, 0, 0, 1)),
         [
             [5 + -15.2,  4, -12.2],
-            [5 + -15.2,  4, -4.2],
             [5 + -15.2,  4, +4.2],
         ]
     ));
@@ -194,13 +192,59 @@ function main() {
         [5 + -15.1, 1.45,  4.4],
     ]));
 
+    var entrance_door_left = unit_cube([1, 0, 0]);
+    entrance_door_left.transform(mm => {
+        mm.translate(1.5, -1, 12.625);
+        mm.scale(1, 2, 0.125);
+    });
+
+    var entrance_door_right = unit_cube([0, 1, 0]);
+    entrance_door_right.transform(mm => {
+        mm.translate(4 - 0.5, -1, 12.625);
+        mm.scale(1, 2, 0.125);
+    });
+
+    var door_angle = 0;
+    var door_open  = true;
+
+    setInterval(function() {
+        if (door_open) {
+            door_angle += 2;
+            if (door_angle === 90) {
+                door_open = false;
+            }
+        } else {
+            door_angle -= 2;
+            if (door_angle === 0) {
+                door_open = true;
+            }
+        }
+
+        var dz = Math.sin(deg2rad(door_angle));
+        var dx = 0.5 * Math.sin(deg2rad(door_angle));
+
+        entrance_door_left.transform_inplace(mm => {
+            mm.translate(1.5 - dx, -1, 12.625 + dz);
+            mm.rotate(-door_angle, 0, 1, 0);
+            mm.scale(1, 2, 0.125);
+        });
+        entrance_door_right.transform_inplace(mm => {
+            mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
+            mm.rotate(door_angle, 0, 1, 0);
+            mm.scale(1, 2, 0.125);
+        });
+        draw(gl);
+    }, 100);
+
     g_drawables.push(base1);
     g_drawables.push(base2);
     g_drawables.push(base3);
     g_drawables.push(roof);
     g_drawables.push(glass);
-    g_drawables.push(entrace_roof);
-    g_drawables.push(entrace_glass);
+    g_drawables.push(entrance_roof);
+    g_drawables.push(entrance_glass);
+    g_drawables.push(entrance_door_left);
+    g_drawables.push(entrance_door_right);
     g_drawables.push(ramp_slope);
     g_drawables.push(ramp_slab);
     draw(gl);

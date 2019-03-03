@@ -42,6 +42,13 @@ drawable.prototype.transform = function(fn) {
 };
 
 
+drawable.prototype.transform_inplace = function(fn) {
+    this.transforms[this.transforms.length - 1] = fn;
+    this.cached = false;
+    return this;
+};
+
+
 drawable.prototype.writeToVertexBuffer = function(gl) {
     // Write the vertex property to buffers (coordinates, colors and normals)
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
