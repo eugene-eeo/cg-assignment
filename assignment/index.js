@@ -101,7 +101,7 @@ function main() {
         ]);
         draw(gl);
     };
-    Cubetexture.image.src = '../resources/sky.jpg';
+    Cubetexture.image.src = 'resources/sky.jpg';
 
     g_drawables.push(cube);
     draw(gl);
@@ -123,6 +123,7 @@ function main() {
     // Set clear color and enable hidden surface removal
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
     var brown      = [130/255,110/255,87/255];
     var dark_brown = [107/255, 68/255,58/255];
@@ -147,7 +148,7 @@ function main() {
         mm.scale(10, 2, 11.8);
     });
 
-    var glass = unit_cube([0, 0, 1]).transform(mm => {
+    var glass = unit_cube([0, 0, 0]).transform(mm => {
         mm.scale(11.5, 2.20, 13.5);
         mm.translate(0.205, 1.5, -0.35);
     });
@@ -157,7 +158,7 @@ function main() {
         mm.scale(2.86, 0.25, 3.50);
     });
 
-    var entrance_glass = unit_cube([0, 0, 1]).transform(mm => {
+    var entrance_glass = unit_cube([0, 0, 0]).transform(mm => {
         mm.translate(2.5, -1.0, 10.5);
         mm.scale(2.5, 2.0, 2.15);
     });
@@ -262,13 +263,13 @@ function main() {
         mm.scale(0.70, 1.70, 0.125);
     });
 
-    var entrance_door_left = unit_cube([1, 0, 0]);
+    var entrance_door_left = unit_cube([0.2, 0.2, 0.2]);
     entrance_door_left.transform(mm => {
         mm.translate(1.5, -1, 12.625);
         mm.scale(1, 2, 0.125);
     });
 
-    var entrance_door_right = unit_cube([0, 1, 0]);
+    var entrance_door_right = unit_cube([0.2, 0.2, 0.2]);
     entrance_door_right.transform(mm => {
         mm.translate(4 - 0.5, -1, 12.625);
         mm.scale(1, 2, 0.125);
@@ -306,6 +307,144 @@ function main() {
         draw(gl);
     }, 100);
 
+    var road = unit_cube([1, 1, 1]);
+    road.transform(mm => {
+        mm.translate(0, -3 - 0.0625, 0);
+        mm.scale(30, 0, 30);
+    });
+    var RoadTexture = gl.createTexture();
+    RoadTexture.image = new Image();
+    RoadTexture.image.onload = function() {
+        road.texture_data = RoadTexture;
+        road.texture_coords = new Float32Array([
+            5.0, 5.0,    0.0, 5.0,   0.0, 0.0,   5.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 5.0,    0.0, 0.0,   5.0, 0.0,   5.0, 5.0,  // v0-v3-v4-v5 right
+            5.0, 0.0,    5.0, 5.0,   0.0, 5.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            5.0, 5.0,    0.0, 5.0,   0.0, 0.0,   5.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    5.0, 0.0,   5.0, 5.0,   0.0, 5.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    5.0, 0.0,   5.0, 5.0,   0.0, 5.0   // v4-v7-v6-v5 back
+        ]);
+        road.setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        draw(gl);
+    };
+    RoadTexture.image.src = 'resources/road.jpg';
+
+    var pavement = unit_cube([1, 1, 1]);
+    pavement.transform(mm => {
+        mm.translate(5, -3, 0);
+        mm.scale(15, 0.0625, 20);
+    });
+    var PavementTexture = gl.createTexture();
+    PavementTexture.image = new Image();
+    PavementTexture.image.onload = function() {
+        pavement.texture_data = PavementTexture;
+        pavement.texture_coords = new Float32Array([
+            4.0, 4.0,    0.0, 4.0,   0.0, 0.0,   4.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 4.0,    0.0, 0.0,   4.0, 0.0,   4.0, 4.0,  // v0-v3-v4-v5 right
+            4.0, 0.0,    4.0, 4.0,   0.0, 4.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            4.0, 4.0,    0.0, 4.0,   0.0, 0.0,   4.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    4.0, 0.0,   4.0, 4.0,   0.0, 4.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    4.0, 0.0,   4.0, 4.0,   0.0, 4.0   // v4-v7-v6-v5 back
+        ]);
+        pavement.setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        draw(gl);
+    };
+    PavementTexture.image.src = 'resources/pavement.jpg';
+
+    var GlassTexture = gl.createTexture();
+    GlassTexture.image = new Image();
+    GlassTexture.image.onload = function() {
+        glass.texture_data = GlassTexture;
+        glass.texture_coords = new Float32Array([
+            6.0, 1.0,    0.0, 1.0,   0.0, 0.0,   6.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 1.0,    0.0, 0.0,   8.0, 0.0,   8.0, 1.0,  // v0-v3-v4-v5 right
+            4.0, 0.0,    4.0, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            8.0, 1.0,    0.0, 1.0,   0.0, 0.0,   8.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    4.0, 0.0,   4.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    6.0, 0.0,   6.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+        glass.setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        entrance_glass.texture_coords = entrance_door_left.texture_coords = entrance_door_right.texture_coords = new Float32Array([
+            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
+            1.0, 0.0,    1.0, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+        entrance_glass.texture_data = GlassTexture;
+        entrance_door_left.texture_data = GlassTexture;
+        entrance_door_right.texture_data = GlassTexture;
+        entrance_glass.setup_texture_gl = entrance_door_left.setup_texture_gl = entrance_door_right.setup_texture_gl = (gl) => {
+            //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        draw(gl);
+    };
+    GlassTexture.image.src = 'resources/glass2.jpg';
+
+    var BrickTexture = gl.createTexture();
+    BrickTexture.image = new Image();
+    BrickTexture.image.onload = function() {
+        base1.texture_data = BrickTexture;
+        base2.texture_data = BrickTexture;
+        base3.texture_data = BrickTexture;
+        ramp_slab.texture_data = BrickTexture;
+        ramp_slope.texture_data = BrickTexture;
+
+        ramp_slab.texture_coords = new Float32Array([
+            0.125, 0.125,    0.0, 0.125,   0.0, 0.0,   0.125, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.25,    0.0, 0.0,   0.25, 0.0,   0.25, 0.25,  // v0-v3-v4-v5 right
+            0.25, 0.0,    0.25, 0.25,   0.0, 0.25,   0.0, 0.0,  // v0-v5-v6-v1 up
+            0.25, 0.25,    0.0, 0.25,   0.0, 0.0,   0.25, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    0.25, 0.0,   0.25, 0.25,   0.0, 0.25,  // v7-v4-v3-v2 down
+            0.0, 0.0,    0.25, 0.0,   0.25, 0.25,   0.0, 0.25   // v4-v7-v6-v5 back
+        ]);
+
+        ramp_slope.texture_coords = new Float32Array([
+            0.125, 0.125,    0.0, 0.125,   0.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.25,    0.0, 0.0,   0.25, 0.0,  // v0-v3-v4-v5 right
+            0.25, 0.0,    0.25, 0.25,   0.0, 0.25,   0.0, 0.0,  // v0-v5-v6-v1 up
+            0.25, 0.25,    0.0, 0.25,   0.0, 0.0,   0.25, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    0.25, 0.0,   0.25, 0.25,   0.0, 0.25,  // v7-v4-v3-v2 down
+        ]);
+
+        base1.texture_coords = base2.texture_coords = base3.texture_coords = new Float32Array([
+            2.0, 1.0,    0.0, 1.0,   0.0, 0.0,   2.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 1.0,    0.0, 0.0,   4.0, 0.0,   4.0, 1.0,  // v0-v3-v4-v5 right
+            4.0, 0.0,    4.0, 2.0,   0.0, 2.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            4.0, 1.0,    0.0, 1.0,   0.0, 0.0,   4.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    4.0, 0.0,   4.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    2.0, 0.0,   2.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+
+        var setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        base1.setup_texture_gl = setup_texture_gl;
+        base2.setup_texture_gl = setup_texture_gl;
+        base3.setup_texture_gl = setup_texture_gl;
+        ramp_slab.setup_texture_gl = setup_texture_gl;
+        ramp_slope.setup_texture_gl = setup_texture_gl;
+        draw(gl);
+    };
+    BrickTexture.image.src = 'resources/brick.jpg';
+
     g_drawables.push(base1);
     g_drawables.push(base2);
     g_drawables.push(base3);
@@ -318,6 +457,8 @@ function main() {
     g_drawables.push(emergency_exit_door);
     g_drawables.push(ramp_slope);
     g_drawables.push(ramp_slab);
+    g_drawables.push(road);
+    g_drawables.push(pavement);
     draw(gl);
     document.onkeydown = function(ev) {
         keydown(ev, gl);
