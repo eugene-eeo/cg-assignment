@@ -21,6 +21,10 @@ function drawable(vertices, colors, normals, indices) {
     this.normals  = normals;
     this.indices  = indices;
     this.transforms = [];
+    // textures
+    this.texture_unit = null;
+    this.texture_data = null;
+    this.texture_coords = null;
     // cache
     this.cached = false;
     this._modelMatrix  = new Matrix4();
@@ -50,6 +54,23 @@ drawable.prototype.transform_inplace = function(fn) {
 
 
 drawable.prototype.writeToVertexBuffer = function(gl) {
+    // texture support
+    var u_UseTextures = gl.getUniformLocation(gl.program, 'u_UseTextures');
+    if (this.texture_unit === null) {
+        gl.uniform1i(u_UseTextures, false);
+    } else {
+        var u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler');
+        gl.uniform1i(u_UseTextures, true);
+        // activate texture unit and bind texture object
+        gl.activeTexture(this.texture_unit);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture_data);
+        // set texture image
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, this.texture_data.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(u_Sampler, this.texture_coords - gl.TEXTURE0);
+        if (!initArrayBuffer(gl, 'a_TexCoords', this.texture_coords, 2, gl.FLOAT))
+            return false;
+    }
     // Write the vertex property to buffers (coordinates, colors and normals)
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
     if (!initArrayBuffer(gl, 'a_Color',    this.colors,   3, gl.FLOAT)) return false;
@@ -74,6 +95,7 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
     gl.uniformMatrix4fv(u_NormalMatrix, false, this._normalMatrix.elements);
 
     // index buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
     var indexBuffer = gl.createBuffer();
     if (!indexBuffer)
         return false;

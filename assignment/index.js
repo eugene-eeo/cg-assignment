@@ -4,6 +4,7 @@ var VSHADER_SOURCE = `
 attribute vec4 a_Position;
 attribute vec4 a_Color;
 attribute vec4 a_Normal;
+attribute vec2 a_TexCoords;
 
 uniform mat4 u_NormalMatrix;
 uniform mat4 u_ModelMatrix;
@@ -13,12 +14,14 @@ uniform mat4 u_ProjMatrix;
 varying vec4 v_Color;
 varying vec3 v_Position;
 varying vec3 v_Normal;
+varying vec2 v_TexCoords;
 
 void main() {
     gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * a_Position;
     v_Position  = vec3(gl_Position);
     v_Normal    = normalize((u_NormalMatrix * a_Normal).xyz);
     v_Color = a_Color;
+    v_TexCoords = a_TexCoords;
 }
 `;
 
@@ -26,6 +29,8 @@ void main() {
 var FSHADER_SOURCE = `
 precision mediump float;
 
+uniform bool u_UseTextures;
+uniform sampler2D u_Sampler;
 uniform vec3 u_LightColor;
 uniform vec3 u_AmbientLight;
 uniform vec3 u_LightDirection;
@@ -33,6 +38,7 @@ uniform vec3 u_LightDirection;
 varying vec4 v_Color;
 varying vec3 v_Position;
 varying vec3 v_Normal;
+varying vec2 v_TexCoords;
 
 void main() {
     vec3 normal = normalize(v_Normal);
@@ -40,7 +46,12 @@ void main() {
     float nDotL = max(dot(lightDirection, normal), 0.0);
     vec3 diffuse;
     vec3 ambient;
-    diffuse = u_LightColor * v_Color.rgb * nDotL;
+    if (u_UseTextures) {
+        vec4 TexColor = texture2D(u_Sampler, v_TexCoords);
+        diffuse = u_LightColor * TexColor.rgb * nDotL * 1.2;
+    } else {
+        diffuse = u_LightColor * v_Color.rgb * nDotL;
+    }
     ambient = u_AmbientLight * v_Color.rgb;
     gl_FragColor = vec4(diffuse + ambient, v_Color.a);
 }
@@ -55,6 +66,47 @@ var ANGLE_STEP = 3.0;
 function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
+
+/*
+function main() {
+    // Get the rendering context for WebGL
+    var gl = getWebGLContext(g_canvas);
+    if (!gl) {
+        console.log('Failed to get the rendering context for WebGL');
+        return;
+    }
+    // Initialize shaders
+    if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+        console.log('Failed to intialize shaders.');
+        return;
+    }
+    // Set clear color and enable hidden surface removal
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+
+    var cube = unit_cube([1, 0, 0]);
+    var Cubetexture = gl.createTexture();
+    Cubetexture.image = new Image();
+    Cubetexture.image.onload = function() {
+        cube.texture_unit = gl.TEXTURE0;
+        cube.texture_data = Cubetexture;
+        cube.texture_coords = new Float32Array([
+            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
+            1.0, 0.0,    1.0, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+        draw(gl);
+    };
+    Cubetexture.image.src = '../resources/sky.jpg';
+
+    g_drawables.push(cube);
+    draw(gl);
+}
+*/
 
 function main() {
     // Get the rendering context for WebGL
