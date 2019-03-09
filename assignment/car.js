@@ -84,6 +84,9 @@ function main() {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
     var body = new drawableTree(unit_cube([1, 0, 0]));
+    var boot = body.add(new drawableTree());
+    var boot_roof = boot.add(unit_cube([0, 1, 0]));
+    var boot_back = boot.add(unit_cube([0, 1, 0]));
     var door = body.add(unit_cube([0, 1, 0]));
     var front_wheels = body.add(new drawableTree());
     var back_wheels  = body.add(new drawableTree());
@@ -99,6 +102,16 @@ function main() {
 
     body.grouped(mm => {
         mm.scale(3, 3, 3);
+    });
+
+    boot_roof.transform(mm => {
+        mm.translate(0, -0.125, -4 - 0.125);
+        mm.scale(1.8, 0.125, 1.125);
+    });
+
+    boot_back.transform(mm => {
+        mm.translate(0, -1 + 0.25, -5 - 0.125);
+        mm.scale(1.8, 0.6, 0.125);
     });
 
     door.transform(mm => {

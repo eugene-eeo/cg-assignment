@@ -69,8 +69,16 @@ function deg2rad(deg) {
 function draw_car(gl) {
     var root = new drawableTree();
     var body = root.add(unit_cube([1, 0, 0]));
+    // doors
     var door1 = body.add(unit_cube([0.5, 0, 0]));
     var door2 = body.add(unit_cube([0.5, 0, 0]));
+
+    // boot
+    var boot = body.add(new drawableTree());
+    var boot_roof = boot.add(unit_cube([0.5, 0, 0]));
+    var boot_back = boot.add(unit_cube([0.5, 0, 0]));
+
+    // wheels
     var front_wheels = body.add(new drawableTree());
     var back_wheels  = body.add(new drawableTree());
     var wheel1 = front_wheels.add(draw_n_prism(15, [0, 1, 0]));
@@ -87,6 +95,16 @@ function draw_car(gl) {
         mm.translate(0, -0.75, 20);
         mm.scale(0.75, 0.75, 0.75);
         mm.rotate(90, 0, 1, 0);
+    });
+
+    boot_roof.transform(mm => {
+        mm.translate(0, -0.5 - 0.125, +4 + 0.125);
+        mm.scale(1.8, 0.125, 1.125);
+    });
+
+    boot_back.transform(mm => {
+        mm.translate(0, -1.125, +5 + 0.125);
+        mm.scale(1.8, 0.6, 0.125);
     });
 
     door1.transform(mm => {
@@ -161,6 +179,17 @@ function draw_car(gl) {
             }
             m.translate(8, 0, -4);
             m.rotate(90, 0, 1, 0);
+        });
+
+        boot.grouped(m => {
+            if (t <= 0.25) {
+                var angle = lerp(90, 0, t / 0.25);
+                var l = 4 + 0.125;
+                var dx = (l / 2) - (l / 2) * Math.cos(deg2rad(angle));
+                var dy = (l / 2) * Math.sin(deg2rad(angle));
+                m.translate(0, -1.8*dy, dx);
+                m.rotate(-angle, 1, 0, 0);
+            }
         });
 
         door1.transform(mm => {

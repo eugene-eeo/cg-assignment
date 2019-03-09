@@ -1,4 +1,4 @@
-function unit_prism(color) {
+!function() {
     // Create a prism
     //      v4
     //     /| \
@@ -17,14 +17,6 @@ function unit_prism(color) {
          0.0, 1.0, 1.0,    0.0, 1.0,-1.0,    0.0, 0.0,-1.0,    0.0, 0.0, 1.0, // v0-v4-v5-v1 side
     ]);
 
-    var colors = [];
-    for (var i = 18; i--;) {
-        colors.push(color[0]);
-        colors.push(color[1]);
-        colors.push(color[2]);
-    }
-    colors = new Float32Array(colors);
-
     // 1/sqrt(2) ~= 0.71
     var normals = new Float32Array([
          0.00, 0.00, 1.00,    0.00, 0.00, 1.00,    0.00, 0.00, 1.00, // v0-v1-v2 front
@@ -42,5 +34,14 @@ function unit_prism(color) {
        14,15,16, 14,16,17, // side
     ]);
 
-    return new drawable(vertices, colors, normals, indices);
-}
+    window.unit_prism = function(color) {
+        var colors = [];
+        for (var i = 18; i--;) {
+            colors.push(color[0]);
+            colors.push(color[1]);
+            colors.push(color[2]);
+        }
+        colors = new Float32Array(colors);
+        return new drawable(vertices, colors, normals, indices);
+    };
+}();
