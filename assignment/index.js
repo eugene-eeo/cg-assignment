@@ -1,4 +1,3 @@
-// Model transformation demo: By Frederick Li
 // Vertex shader program
 var VSHADER_SOURCE = `
 attribute vec4 a_Position;
@@ -67,46 +66,142 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-/*
-function main() {
-    // Get the rendering context for WebGL
-    var gl = getWebGLContext(g_canvas);
-    if (!gl) {
-        console.log('Failed to get the rendering context for WebGL');
-        return;
-    }
-    // Initialize shaders
-    if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
-        console.log('Failed to intialize shaders.');
-        return;
-    }
-    // Set clear color and enable hidden surface removal
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+function draw_car(gl) {
+    var root = new drawableTree();
+    var body = root.add(unit_cube([1, 0, 0]));
+    var door1 = body.add(unit_cube([0.5, 0, 0]));
+    var door2 = body.add(unit_cube([0.5, 0, 0]));
+    var front_wheels = body.add(new drawableTree());
+    var back_wheels  = body.add(new drawableTree());
+    var wheel1 = front_wheels.add(draw_n_prism(15, [0, 1, 0]));
+    var wheel2 = front_wheels.add(draw_n_prism(15, [0, 1, 0]));
+    var wheel3 = back_wheels.add(draw_n_prism(15, [0, 1, 0]));
+    var wheel4 = back_wheels.add(draw_n_prism(15, [0, 1, 0]));
 
-    var cube = unit_cube([1, 0, 0]);
-    var Cubetexture = gl.createTexture();
-    Cubetexture.image = new Image();
-    Cubetexture.image.onload = function() {
-        cube.texture_unit = gl.TEXTURE0;
-        cube.texture_data = Cubetexture;
-        cube.texture_coords = new Float32Array([
-            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
-            0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
-            1.0, 0.0,    1.0, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
-            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
-            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
-            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
-        ]);
+    body.transform(mm => {
+        mm.translate(0, -1.5, 0);
+        mm.scale(2, 0.8, 5);
+    });
+
+    body.grouped(mm => {
+        mm.translate(0, -0.75, 20);
+        mm.scale(0.75, 0.75, 0.75);
+        mm.rotate(90, 0, 1, 0);
+    });
+
+    door1.transform(mm => {
+        mm.translate(-2, -1.5, 0);
+        mm.scale(0.125, 0.8, 1);
+    });
+
+    door2.transform(mm => {
+        mm.translate(2, -1.5, 0);
+        mm.scale(0.125, 0.8, 1);
+    });
+
+    wheel1.transform(mm => {
+        mm.translate(2, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(1, 1, 0.35);
+    });
+
+    wheel2.transform(mm => {
+        mm.translate(-2, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(1, 1, 0.35);
+    });
+
+    wheel3.transform(mm => {
+        mm.translate(2, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(1, 1, 0.35);
+    });
+
+    wheel4.transform(mm => {
+        mm.translate(-2, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(1, 1, 0.35);
+    });
+
+    var top = body.add(new drawableTree());
+    var window_front = top.add(unit_prism([0, 0, 1]));
+    var window_mid   = top.add(unit_cube([0, 0, 1]));
+    var window_back  = top.add(unit_prism([0, 0, 1]));
+
+    window_mid.transform(mm => {
+        mm.translate(0, 0.55 - 0.5, +0);
+        mm.scale(2, 0.75, 1.5);
+    });
+
+    window_front.transform(mm => {
+        mm.translate(0, -0.2 - 0.5, +1.5);
+        mm.scale(2, 1.5, 1.5);
+        mm.rotate(-90, 0, 1, 0);
+    });
+
+    window_back.transform(mm => {
+        mm.translate(0, -0.2 - 0.5, -1.5);
+        mm.scale(2, 1.5, 1.5);
+        mm.rotate(90, 0, 1, 0);
+    });
+
+    g_drawables.push(root);
+
+    var t = 0;
+    var t_step = 0.01;
+    setInterval(function() {
+        t += t_step;
+        if (t >= 1.0 || t <= 0.0) {
+            t_step = -t_step;
+        }
+
+        root.grouped(m => {
+            if (t > 0.25) {
+                m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
+            }
+            m.translate(8, 0, -4);
+            m.rotate(90, 0, 1, 0);
+        });
+
+        door1.transform(mm => {
+            if (t <= 0.25) {
+                var angle = lerp(90, 0, t / 0.25);
+                var dz = Math.sin(deg2rad(angle));
+                var dx = 0.5 * Math.sin(deg2rad(angle));
+                mm.translate(-2 - dx, -1.5, 0 - dz);
+                mm.rotate(-angle, 0, 1, 0);
+                mm.scale(0.125, 0.8, 1);
+            } else {
+                mm.translate(-2, -1.5, 0);
+                mm.scale(0.125, 0.8, 1);
+            }
+        });
+
+        front_wheels.grouped(m => {
+            m.translate(0, -2, 2.5);
+            // stationary
+            if (t <= 0.25) {
+            } else {
+                // spin
+                m.rotate(lerp(0, -360, t), 1, 0, 0);
+            }
+        });
+        back_wheels.grouped(m => {
+            m.translate(0, -2, -2.5);
+            // stationary
+            if (t <= 0.25) {
+            } else {
+                // spin
+                m.rotate(lerp(0, -360, t), 1, 0, 0);
+            }
+        });
         draw(gl);
-    };
-    Cubetexture.image.src = 'resources/sky.jpg';
-
-    g_drawables.push(cube);
-    draw(gl);
+    }, 100);
 }
-*/
+
+function lerp(y0, y1, t) {
+    return y0*(1-t) + y1*(t);
+}
 
 function main() {
     // Get the rendering context for WebGL
@@ -294,12 +389,12 @@ function main() {
         var dz = Math.sin(deg2rad(door_angle));
         var dx = 0.5 * Math.sin(deg2rad(door_angle));
 
-        entrance_door_left.transform_inplace(mm => {
+        entrance_door_left.transform(mm => {
             mm.translate(1.5 - dx, -1, 12.625 + dz);
             mm.rotate(-door_angle, 0, 1, 0);
             mm.scale(1, 2, 0.125);
         });
-        entrance_door_right.transform_inplace(mm => {
+        entrance_door_right.transform(mm => {
             mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
             mm.rotate(door_angle, 0, 1, 0);
             mm.scale(1, 2, 0.125);
@@ -309,8 +404,8 @@ function main() {
 
     var road = unit_cube([1, 1, 1]);
     road.transform(mm => {
-        mm.translate(0, -3 - 0.0625, 0);
-        mm.scale(30, 0, 30);
+        mm.translate(10 + 5, -3 -0.125 - 0.0625, 0);
+        mm.scale(20, 0.125, 25);
     });
     var RoadTexture = gl.createTexture();
     RoadTexture.image = new Image();
@@ -335,7 +430,7 @@ function main() {
 
     var pavement = unit_cube([1, 1, 1]);
     pavement.transform(mm => {
-        mm.translate(5, -3, 0);
+        mm.translate(5 + 5, -3, -5);
         mm.scale(15, 0.0625, 20);
     });
     var PavementTexture = gl.createTexture();
@@ -445,6 +540,52 @@ function main() {
     };
     BrickTexture.image.src = 'resources/brick.jpg';
 
+    var wall1 = unit_cube([1, 0, 0]);
+    wall1.transform(mm => {
+        mm.translate(-5, -2 - 0.0625, 18 - 1);
+        mm.scale(0.25, 1, 8);
+    });
+    var wall2 = unit_cube([1, 0, 0]);
+    wall2.transform(mm => {
+        mm.translate(-3, -2 - 0.0625, 25 - 0.25);
+        mm.scale(2, 1, 0.25);
+    });
+
+    var WallTexture = gl.createTexture();
+    WallTexture.image = new Image();
+    WallTexture.image.onload = function() {
+        wall1.texture_data = WallTexture;
+        wall2.texture_data = WallTexture;
+        wall1.texture_coords = new Float32Array([
+            0.25, 0.5,    0.0, 0.5,   0.0, 0.0,   0.25, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.5,    0.0, 0.0,   2.0, 0.0,   2.0, 0.5,  // v0-v3-v4-v5 right
+            2.0, 0.0,    2.0, 0.5,   0.0, 0.5,   0.0, 0.0,  // v0-v5-v6-v1 up
+            2.0, 0.5,    0.0, 0.5,   0.0, 0.0,   2.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    2.0, 0.0,   2.0, 0.5,   0.0, 0.5,  // v7-v4-v3-v2 down
+            0.0, 0.0,    6.0, 0.0,   6.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+        wall2.texture_coords = new Float32Array([
+            1.0, 0.5,    0.0, 0.5,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.5,    0.0, 0.0,   3.0, 0.0,   3.0, 0.5,  // v0-v3-v4-v5 right
+            3.0, 0.0,    3.0, 0.5,   0.0, 0.5,   0.0, 0.0,  // v0-v5-v6-v1 up
+            3.0, 0.5,    0.0, 0.5,   0.0, 0.0,   3.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    3.0, 0.0,   3.0, 0.5,   0.0, 0.5,  // v7-v4-v3-v2 down
+            0.0, 0.0,    6.0, 0.0,   6.0, 0.5,   0.0, 0.5   // v4-v7-v6-v5 back
+        ]);
+
+        var setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        wall1.setup_texture_gl = setup_texture_gl;
+        wall2.setup_texture_gl = setup_texture_gl;
+        draw(gl);
+    };
+    WallTexture.image.src = 'resources/wall.jpg';
+
+    g_drawables.push(wall1);
+    g_drawables.push(wall2);
     g_drawables.push(base1);
     g_drawables.push(base2);
     g_drawables.push(base3);
@@ -459,6 +600,7 @@ function main() {
     g_drawables.push(ramp_slab);
     g_drawables.push(road);
     g_drawables.push(pavement);
+    draw_car(gl);
     draw(gl);
     document.onkeydown = function(ev) {
         keydown(ev, gl);
@@ -518,7 +660,7 @@ function draw(gl) {
     gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(0, 0, 60, 0, 0, -100, 0, 1, 0);
+    viewMatrix.setLookAt(10, 0, 60, 0, 0, -100, 0, 1, 0);
     viewMatrix.rotate(g_xAngle, 1, 0, 0);
     viewMatrix.rotate(g_yAngle, 0, 1, 0);
 

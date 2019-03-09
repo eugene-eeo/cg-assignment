@@ -8,10 +8,18 @@ function initArrayBuffer(gl, attribute, data, num, type) {
     var a_attr = gl.getAttribLocation(gl.program, attribute);
     if (a_attr < 0)
         return false;
-    gl.vertexAttribPointer(a_attr, num, type, false, 0, 0);
+    gl.vertexAttribPointer(a_attr, num, type, false, data.BYTES_PER_ELEMENT * num, 0);
     gl.enableVertexAttribArray(a_attr);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return true;
+}
+
+
+function disableArrayBuffer(gl, attribute) {
+    // Assign buffer object to attribute
+    var a_attr = gl.getAttribLocation(gl.program, attribute);
+    if (a_attr < 0)
+        return false;
+    gl.disableVertexAttribArray(a_attr);
 }
 
 
@@ -20,13 +28,11 @@ function drawable(vertices, colors, normals, indices) {
     this.colors   = colors;
     this.normals  = normals;
     this.indices  = indices;
-    this.transforms = [];
     // textures
     this.texture_data = null;
     this.texture_coords = null;
     this.setup_texture_gl = function() {};
     // cache
-    this.cached = false;
     this._modelMatrix  = new Matrix4();
     this._normalMatrix = new Matrix4();
 }
@@ -34,21 +40,32 @@ function drawable(vertices, colors, normals, indices) {
 
 drawable.prototype.clone = function(fn) {
     var d = new drawable(this.vertices, this.colors, this.normals, this.indices);
-    d.transforms = this.transforms.concat([]);
+    var mm = new Matrix4(this._modelMatrix);
+    d.transform = function(fn) {
+        d._modelMatrix.setIdentity();
+        d.transform_inplace(m => {
+            fn(m);
+            m.multiply(mm);
+        });
+        return d;
+    };
+    d._modelMatrix  = new Matrix4(mm);
+    d._normalMatrix = new Matrix4(this._normalMatrix);
     return d;
 };
 
 
 drawable.prototype.transform = function(fn) {
-    this.transforms.push(fn);
-    this.cached = false;
+    this._modelMatrix.setIdentity();
+    this.transform_inplace(fn);
     return this;
 };
 
 
 drawable.prototype.transform_inplace = function(fn) {
-    this.transforms[this.transforms.length - 1] = fn;
-    this.cached = false;
+    fn(this._modelMatrix);
+    this._normalMatrix.setInverseOf(this._modelMatrix);
+    this._normalMatrix.transpose();
     return this;
 };
 
@@ -57,10 +74,16 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
     // texture support
     var u_UseTextures = gl.getUniformLocation(gl.program, 'u_UseTextures');
     if (this.texture_data === null) {
+        // need to disable so that previous lookup for a_TexCoords doesn't affect
+        // the current one
+        disableArrayBuffer(gl, 'a_TexCoords');
         gl.uniform1i(u_UseTextures, false);
     } else {
+        // bind texture coordinates
+        if (!initArrayBuffer(gl, 'a_TexCoords', this.texture_coords, 2, gl.FLOAT))
+            return false;
+        // enable textures
         var u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler');
-        gl.uniform1i(u_UseTextures, true);
         // activate texture unit and bind texture object
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture_data);
@@ -68,24 +91,12 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, this.texture_data.image);
         this.setup_texture_gl(gl);
         gl.uniform1i(u_Sampler, 0);
-        if (!initArrayBuffer(gl, 'a_TexCoords', this.texture_coords, 2, gl.FLOAT))
-            return false;
+        gl.uniform1i(u_UseTextures, true);
     }
     // Write the vertex property to buffers (coordinates, colors and normals)
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
     if (!initArrayBuffer(gl, 'a_Color',    this.colors,   3, gl.FLOAT)) return false;
     if (!initArrayBuffer(gl, 'a_Normal',   this.normals,  3, gl.FLOAT)) return false;
-    // recalculate if necessary
-    if (!this.cached) {
-        this._modelMatrix.setIdentity();
-        for (var i = this.transforms.length - 1; i >= 0; i--) {
-            this.transforms[i](this._modelMatrix);
-        }
-        // recalculate the normal transform matrix
-        this._normalMatrix.setInverseOf(this._modelMatrix);
-        this._normalMatrix.transpose();
-        this.cached = true;
-    }
 
     // Write model matrix and normals
     var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
