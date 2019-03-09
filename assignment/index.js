@@ -81,10 +81,30 @@ function draw_car(gl) {
     // wheels
     var front_wheels = body.add(new drawableTree());
     var back_wheels  = body.add(new drawableTree());
-    var wheel1 = front_wheels.add(draw_n_prism(15, [0, 1, 0]));
-    var wheel2 = front_wheels.add(draw_n_prism(15, [0, 1, 0]));
-    var wheel3 = back_wheels.add(draw_n_prism(15, [0, 1, 0]));
-    var wheel4 = back_wheels.add(draw_n_prism(15, [0, 1, 0]));
+    var grey   = [0.2, 0.2, 0.2];
+    var silver = [0.8, 0.8, 0.8];
+
+    var headlight1 = body.add(draw_n_prism(10, [1, 1, 0]));
+    var headlight2 = body.add(draw_n_prism(10, [1, 1, 0]));
+
+    var wheel1 = front_wheels.add(new drawableTree());
+    var wheel2 = front_wheels.add(new drawableTree());
+    var wheel3 = back_wheels.add(new drawableTree());
+    var wheel4 = back_wheels.add(new drawableTree());
+
+    var tyre1 = wheel1.add(draw_n_prism(15, grey));
+    var tyre2 = wheel2.add(draw_n_prism(15, grey));
+    var tyre3 = wheel3.add(draw_n_prism(15, grey));
+    var tyre4 = wheel4.add(draw_n_prism(15, grey));
+    var rim1  = wheel1.add(draw_n_prism(10, silver));
+    var rim2  = wheel2.add(draw_n_prism(10, silver));
+    var rim3  = wheel3.add(draw_n_prism(10, silver));
+    var rim4  = wheel4.add(draw_n_prism(10, silver));
+
+    var top = body.add(new drawableTree());
+    var window_front = top.add(unit_prism([0.5, 0.5, 1]));
+    var window_mid   = top.add(unit_cube([0.5, 0.5, 1]));
+    var window_back  = top.add(unit_prism([0.5, 0.5, 1]));
 
     body.transform(mm => {
         mm.translate(0, -1.5, 0);
@@ -107,6 +127,16 @@ function draw_car(gl) {
         mm.scale(1.8, 0.6, 0.125);
     });
 
+    headlight1.transform(mm => {
+        mm.translate(1.5, -1.25, -5);
+        mm.scale(0.25, 0.25, 0.125);
+    });
+
+    headlight2.transform(mm => {
+        mm.translate(-1.5, -1.25, -5);
+        mm.scale(0.25, 0.25, 0.125);
+    });
+
     door1.transform(mm => {
         mm.translate(-2, -1.5, 0);
         mm.scale(0.125, 0.8, 1);
@@ -117,49 +147,68 @@ function draw_car(gl) {
         mm.scale(0.125, 0.8, 1);
     });
 
-    wheel1.transform(mm => {
-        mm.translate(2, 0, 0);
+    rim1.transform(mm => {
+        mm.translate(1.925, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.5, 0.5, 0.35);
+    });
+
+    rim2.transform(mm => {
+        mm.translate(-1.925, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.5, 0.5, 0.35);
+    });
+
+    rim3.transform(mm => {
+        mm.translate(1.925, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.5, 0.5, 0.35);
+    });
+
+    rim4.transform(mm => {
+        mm.translate(-1.925, 0, 0);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.5, 0.5, 0.35);
+    });
+
+    tyre1.transform(mm => {
+        mm.translate(1.8, 0, 0);
         mm.rotate(90, 0, 1, 0);
         mm.scale(1, 1, 0.35);
     });
 
-    wheel2.transform(mm => {
-        mm.translate(-2, 0, 0);
+    tyre2.transform(mm => {
+        mm.translate(-1.8, 0, 0);
         mm.rotate(90, 0, 1, 0);
         mm.scale(1, 1, 0.35);
     });
 
-    wheel3.transform(mm => {
-        mm.translate(2, 0, 0);
+    tyre3.transform(mm => {
+        mm.translate(1.8, 0, 0);
         mm.rotate(90, 0, 1, 0);
         mm.scale(1, 1, 0.35);
     });
 
-    wheel4.transform(mm => {
-        mm.translate(-2, 0, 0);
+    tyre4.transform(mm => {
+        mm.translate(-1.8, 0, 0);
         mm.rotate(90, 0, 1, 0);
         mm.scale(1, 1, 0.35);
     });
-
-    var top = body.add(new drawableTree());
-    var window_front = top.add(unit_prism([0, 0, 1]));
-    var window_mid   = top.add(unit_cube([0, 0, 1]));
-    var window_back  = top.add(unit_prism([0, 0, 1]));
 
     window_mid.transform(mm => {
-        mm.translate(0, 0.55 - 0.5, +0);
-        mm.scale(2, 0.75, 1.5);
+        mm.translate(0, 0.05, +0);
+        mm.scale(1.8, 0.75, 1.5);
     });
 
     window_front.transform(mm => {
         mm.translate(0, -0.2 - 0.5, +1.5);
-        mm.scale(2, 1.5, 1.5);
+        mm.scale(1.8, 1.5, 1.5);
         mm.rotate(-90, 0, 1, 0);
     });
 
     window_back.transform(mm => {
         mm.translate(0, -0.2 - 0.5, -1.5);
-        mm.scale(2, 1.5, 1.5);
+        mm.scale(1.8, 1.5, 1.5);
         mm.rotate(90, 0, 1, 0);
     });
 
@@ -175,7 +224,9 @@ function draw_car(gl) {
 
         root.grouped(m => {
             if (t > 0.25) {
-                m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
+                //m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
+                //m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
+                m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
             }
             m.translate(8, 0, -4);
             m.rotate(90, 0, 1, 0);
@@ -208,20 +259,17 @@ function draw_car(gl) {
 
         front_wheels.grouped(m => {
             m.translate(0, -2, 2.5);
-            // stationary
-            if (t <= 0.25) {
-            } else {
-                // spin
-                m.rotate(lerp(0, -360, t), 1, 0, 0);
+            if (t > 0.25) {
+                var b = (t - 0.25) / 0.75;
+                m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
             }
         });
         back_wheels.grouped(m => {
             m.translate(0, -2, -2.5);
-            // stationary
-            if (t <= 0.25) {
-            } else {
-                // spin
-                m.rotate(lerp(0, -360, t), 1, 0, 0);
+            if (t > 0.25) {
+                var b = (t - 0.25) / 0.75;
+                m.rotate(lerp(0, -30, b), 0, 1, 0);  // wheel direction
+                m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
             }
         });
         draw(gl);
