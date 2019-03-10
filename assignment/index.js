@@ -66,17 +66,34 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-function draw_car(gl) {
+function random_color() {
+    var r = Math.random(),
+        g = Math.random(),
+        b = Math.random();
+    return [r, g, b];
+}
+
+function darken(color, f) {
+    var r = color[0] * f,
+        g = color[1] * f,
+        b = color[2] * f;
+    return [r, g, b];
+}
+
+function draw_car(gl, no_animation) {
+    var main_color = random_color();
+    var dark = darken(main_color, 0.5);
+
     var root = new drawableTree();
-    var body = root.add(unit_cube([1, 0, 0]));
+    var body = root.add(unit_cube(main_color));
     // doors
-    var door1 = body.add(unit_cube([0.5, 0, 0]));
-    var door2 = body.add(unit_cube([0.5, 0, 0]));
+    var door1 = body.add(unit_cube(dark));
+    var door2 = body.add(unit_cube(dark));
 
     // boot
     var boot = body.add(new drawableTree());
-    var boot_roof = boot.add(unit_cube([0.5, 0, 0]));
-    var boot_back = boot.add(unit_cube([0.5, 0, 0]));
+    var boot_roof = boot.add(unit_cube(dark));
+    var boot_back = boot.add(unit_cube(dark));
 
     // wheels
     var front_wheels = body.add(new drawableTree());
@@ -86,6 +103,8 @@ function draw_car(gl) {
 
     var headlight1 = body.add(draw_n_prism(10, [1, 1, 0]));
     var headlight2 = body.add(draw_n_prism(10, [1, 1, 0]));
+
+    var plate = body.add(unit_cube(silver));
 
     var wheel1 = front_wheels.add(new drawableTree());
     var wheel2 = front_wheels.add(new drawableTree());
@@ -101,6 +120,9 @@ function draw_car(gl) {
     var rim3  = wheel3.add(draw_n_prism(10, silver));
     var rim4  = wheel4.add(draw_n_prism(10, silver));
 
+    var side_mirror1 = body.add(draw_n_prism(3, dark));
+    var side_mirror2 = body.add(draw_n_prism(3, dark));
+
     var top = body.add(new drawableTree());
     var window_front = top.add(unit_prism([0.5, 0.5, 1]));
     var window_mid   = top.add(unit_cube([0.5, 0.5, 1]));
@@ -112,9 +134,26 @@ function draw_car(gl) {
     });
 
     body.grouped(mm => {
-        mm.translate(0, -0.75, 20);
-        mm.scale(0.75, 0.75, 0.75);
+        mm.translate(0, no_animation ? -1 + 0.125 : -1, 20);
+        mm.scale(0.7, 0.7, 0.7);
         mm.rotate(90, 0, 1, 0);
+    });
+
+    side_mirror2.transform(mm => {
+        mm.translate(-2, -0.5, -1);
+        mm.scale(0.25, 0.5, 0.5);
+        mm.rotate(90, 0, 1, 0);
+    });
+
+    side_mirror1.transform(mm => {
+        mm.translate(2, -0.5, -1);
+        mm.scale(0.25, 0.5, 0.5);
+        mm.rotate(90, 0, 1, 0);
+    });
+
+    plate.transform(mm => {
+        mm.translate(0, -1.75, -5);
+        mm.scale(1.0, 0.25, 0.125);
     });
 
     boot_roof.transform(mm => {
@@ -212,7 +251,13 @@ function draw_car(gl) {
         mm.rotate(90, 0, 1, 0);
     });
 
+    front_wheels.grouped(m => m.translate(0, -2, 2.5));
+    back_wheels.grouped(m => m.translate(0, -2, -2.5));
+
     g_drawables.push(root);
+
+    if (no_animation)
+        return root;
 
     var t = 0;
     var t_step = 0.01;
@@ -345,6 +390,11 @@ function main() {
         mm.scale(1.0, 0.375, 1);
     });
 
+    var alarm = draw_n_prism(6, [0.976, 0.741, 0.176]).transform(mm => {
+        mm.translate(14, 2, 10.125);
+        mm.scale(0.35, 0.35, 0.125);
+    });
+
     var pillar_template = unit_cube(dark_brown);
     pillar_template.transform(mm => {
         mm.scale(0.1, 4.45, 0.125);
@@ -446,6 +496,33 @@ function main() {
         mm.translate(4 - 0.5, -1, 12.625);
         mm.scale(1, 2, 0.125);
     });
+
+    var grass = unit_cube([0, 1, 0]);
+    grass.transform(mm => {
+        mm.translate(10, -2, -24);
+        mm.scale(15, 1, 1);
+    });
+
+    var GrassTexture = gl.createTexture();
+    GrassTexture.image = new Image();
+    GrassTexture.image.onload = function() {
+        grass.texture_data = GrassTexture;
+        grass.texture_coords = new Float32Array([
+            5.0, 1.0,    0.0, 1.0,   0.0, 0.0,   5.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
+            1.0, 0.0,    1.0, 5.0,   0.0, 5.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
+            0.0, 0.0,    5.0, 0.0,   5.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
+        ]);
+        grass.setup_texture_gl = (gl) => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        };
+        draw(gl);
+    };
+    GrassTexture.image.src = 'resources/grass.jpg';
 
     var door_angle = 0;
     var door_open  = true;
@@ -677,7 +754,12 @@ function main() {
     g_drawables.push(ramp_slab);
     g_drawables.push(road);
     g_drawables.push(pavement);
+    g_drawables.push(grass);
+    g_drawables.push(alarm);
     draw_car(gl);
+    draw_car(gl, true).grouped(m => m.translate(20, 0, -15));
+    draw_car(gl, true).grouped(m => m.translate(20, 0, -20));
+    draw_car(gl, true).grouped(m => m.translate(20, 0, -30));
     draw(gl);
     document.onkeydown = function(ev) {
         keydown(ev, gl);
