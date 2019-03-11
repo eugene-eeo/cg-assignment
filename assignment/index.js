@@ -261,7 +261,7 @@ function draw_car(gl, no_animation) {
 
     var t = 0;
     var t_step = 0.01;
-    setInterval(function() {
+    setTimeout(function animateStep() {
         t += t_step;
         if (t >= 1.0 || t <= 0.0) {
             t_step = -t_step;
@@ -269,8 +269,6 @@ function draw_car(gl, no_animation) {
 
         root.grouped(m => {
             if (t > 0.25) {
-                //m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
-                //m.translate(0, 0, lerp(0, 25, (t - 0.25) / 0.75));
                 m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
             }
             m.translate(8, 0, -4);
@@ -295,18 +293,16 @@ function draw_car(gl, no_animation) {
                 var dx = 0.5 * Math.sin(deg2rad(angle));
                 mm.translate(-2 - dx, -1.5, 0 - dz);
                 mm.rotate(-angle, 0, 1, 0);
-                mm.scale(0.125, 0.8, 1);
             } else {
                 mm.translate(-2, -1.5, 0);
-                mm.scale(0.125, 0.8, 1);
             }
+            mm.scale(0.125, 0.8, 1);
         });
 
         front_wheels.grouped(m => {
             m.translate(0, -2, 2.5);
             if (t > 0.25) {
-                var b = (t - 0.25) / 0.75;
-                m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
+                m.rotate(lerp(0, -360, (t - 0.25) / 0.75), 1, 0, 0); // wheel spin
             }
         });
         back_wheels.grouped(m => {
@@ -318,6 +314,7 @@ function draw_car(gl, no_animation) {
             }
         });
         draw(gl);
+        setTimeout(animateStep, 100);
     }, 100);
 }
 
