@@ -524,7 +524,7 @@ function main() {
     var door_angle = 0;
     var door_open  = true;
 
-    setInterval(function() {
+    setTimeout(function animateStep() {
         if (door_open) {
             door_angle += 2;
             if (door_angle === 90) {
@@ -551,6 +551,7 @@ function main() {
             mm.scale(1, 2, 0.125);
         });
         draw(gl);
+        setTimeout(animateStep, 100);
     }, 100);
 
     var road = unit_cube([1, 1, 1]);
