@@ -801,8 +801,9 @@ function keydown(ev, gl) {
   }
 
   // Draw the scene
+  // But after we handle the event; for some reason this feels faster
   ev.preventDefault();
-  draw(gl);
+  setTimeout(function() { draw(gl) }, 0);
 }
 
 function draw(gl) {
