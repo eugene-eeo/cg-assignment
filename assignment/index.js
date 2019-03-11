@@ -58,8 +58,10 @@ void main() {
 
 var g_canvas = document.getElementById('webgl');
 var g_drawables = [];
+var g_animations = [];
 var g_xAngle = 0;
 var g_yAngle = 0;
+var g_z = 0;
 var ANGLE_STEP = 3.0;
 
 function deg2rad(deg) {
@@ -261,7 +263,7 @@ function draw_car(gl, no_animation) {
 
     var t = 0;
     var t_step = 0.01;
-    setTimeout(function animateStep() {
+    g_animations.push(function() {
         t += t_step;
         if (t >= 1.0 || t <= 0.0) {
             t_step = -t_step;
@@ -313,9 +315,7 @@ function draw_car(gl, no_animation) {
                 m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
             }
         });
-        draw(gl);
-        setTimeout(animateStep, 100);
-    }, 100);
+    });
 }
 
 function lerp(y0, y1, t) {
@@ -524,7 +524,7 @@ function main() {
     var door_angle = 0;
     var door_open  = true;
 
-    setTimeout(function animateStep() {
+    g_animations.push(function() {
         if (door_open) {
             door_angle += 2;
             if (door_angle === 90) {
@@ -550,9 +550,7 @@ function main() {
             mm.rotate(door_angle, 0, 1, 0);
             mm.scale(1, 2, 0.125);
         });
-        draw(gl);
-        setTimeout(animateStep, 100);
-    }, 100);
+    });
 
     var road = unit_cube([1, 1, 1]);
     road.transform(mm => {
@@ -762,10 +760,24 @@ function main() {
     document.onkeydown = function(ev) {
         keydown(ev, gl);
     };
+
+    function animate() {
+        for (var i = 0; i < g_animations.length; i++)
+            g_animations[i]();
+        draw(gl);
+        setTimeout(animate, 100);
+    }
+    animate();
 }
 
 function keydown(ev, gl) {
   switch (ev.keyCode) {
+    case 173: // minus
+      g_z = (g_z + ANGLE_STEP);
+      break;
+    case 61:  // equals
+      g_z = (g_z - ANGLE_STEP);
+      break;
     case 40: // Up arrow key -> the positive rotation of arm1 around the y-axis
       g_xAngle = (g_xAngle + ANGLE_STEP) % 360;
       break;
@@ -782,6 +794,7 @@ function keydown(ev, gl) {
   }
 
   // Draw the scene
+  ev.preventDefault();
   draw(gl);
 }
 
@@ -817,7 +830,7 @@ function draw(gl) {
     gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(10, 0, 60, 0, 0, -100, 0, 1, 0);
+    viewMatrix.setLookAt(10, 0, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
     viewMatrix.rotate(g_xAngle, 1, 0, 0);
     viewMatrix.rotate(g_yAngle, 0, 1, 0);
 

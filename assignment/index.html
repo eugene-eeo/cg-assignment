@@ -8,17 +8,22 @@
   <script src="../lib/n-prism.js"></script>
 <style>
 * { margin:0; padding:0; } /* to remove the top and left whitespace */
-body { width:100%; height:100%; } /* just to be sure these are full screen*/
-canvas { display:block; } /* To remove the scrollbars */
+canvas { display:block; border: 1px solid #000; } /* To remove the scrollbars */
 </style>
 </head>
 <body onload="main()">
+  <center>
   <canvas id="webgl" width="750" height="750"></canvas>
+  <p>
+    Use arrow keys to rotate about x or y axis.
+  <p>
+    Use - and = keys to zoom out or zoom in.
+  </center>
   <script>
 !function() {
   var canvas = document.getElementById('webgl');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width  = 0.80 * window.innerWidth;
+  canvas.height = 0.80 * window.innerHeight;
 }()
   </script>
   <script src="helpers/group.js"></script>
