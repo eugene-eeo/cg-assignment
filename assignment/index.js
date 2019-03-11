@@ -57,6 +57,7 @@ void main() {
 `;
 
 var g_canvas = document.getElementById('webgl');
+var g_enable_animations = true;
 var g_drawables = [];
 var g_animations = [];
 var g_xAngle = 0;
@@ -317,6 +318,10 @@ function draw_car(gl, no_animation) {
         });
     });
 }
+
+document.getElementById('enableAnimation').addEventListener('change', function(ev) {
+    g_enable_animations = document.getElementById('enableAnimation').checked;
+});
 
 function lerp(y0, y1, t) {
     return y0*(1-t) + y1*(t);
@@ -762,9 +767,11 @@ function main() {
     };
 
     function animate() {
-        for (var i = 0; i < g_animations.length; i++)
-            g_animations[i]();
-        draw(gl);
+        if (g_enable_animations) {
+            for (var i = 0; i < g_animations.length; i++)
+                g_animations[i]();
+            draw(gl);
+        }
         setTimeout(animate, 100);
     }
     animate();
