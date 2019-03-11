@@ -806,13 +806,6 @@ function keydown(ev, gl) {
 }
 
 function draw(gl) {
-    var width = gl.canvas.clientWidth;
-    var height = gl.canvas.clientHeight;
-    if (gl.canvas.width != width || gl.canvas.height != height) {
-        gl.canvas.width = width;
-        gl.canvas.height = height;
-    }
-
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -822,11 +815,6 @@ function draw(gl) {
     var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
     var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
     var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
-
-    if (!u_ViewMatrix || !u_ProjMatrix || !u_LightColor || !u_LightDirection) { 
-        console.log('Failed to get storage locations');
-        return;
-    }
 
     var viewMatrix = new Matrix4();  // The view matrix
     var projMatrix = new Matrix4();  // The projection matrix
