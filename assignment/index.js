@@ -981,18 +981,20 @@ function main() {
 function mainLoop(gl) {
     var t_prev = 0;
     function animate(t) {
-        if (t_prev === 0) t_prev = t;
+        t_prev = t_prev || t;
         var dt = t - t_prev;
         t_prev = t;
-        if (g_enable_animations) {
+        if (g_enable_animations)
             for (var i = 0; i < g_animations.length; i++)
                 g_animations[i](dt);
-        }
         if (g_enable_animations || g_changed)
             draw(gl);
         g_changed = false;
         window.requestAnimationFrame(animate);
     }
+    // animate one step first
+    for (var i = 0; i < g_animations.length; i++)
+        g_animations[i](0);
     window.requestAnimationFrame(animate);
 }
 

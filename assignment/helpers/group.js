@@ -22,33 +22,24 @@ drawableTree.prototype = {
         this.g = g;
         this.cached = false;
     },
-    apply_transforms: function(matrix, forced) {
+    transform_and_draw: function(gl, matrix, forced) {
         // assumption: we always call draw on the root of
         // the tree, so any uncached transformations will
         // propagate to us
         if (!this.cached) forced = true;
-        if (!forced) return;
-        var mat = new Matrix4();
-        mat.set(matrix);
-        this.g(mat);
-        if (this.drawable)
-            this.drawable.transform(m => {
-                m.set(mat);
-                this.f(m);
-            });
-        this.cached = true;
-        for (var i = 0; i < this.children.length; i++)
-            this.children[i].apply_transforms(mat, forced);
-    },
-    just_draw: function(gl) {
-        // just draw to gl please
+        if (forced) {
+            var mat = (new Matrix4()).set(matrix);
+            this.g(mat);
+            if (this.drawable)
+                this.drawable.transform(m => this.f(m.set(mat)));
+            this.cached = true;
+        }
         if (this.drawable)
             this.drawable.draw(gl);
         for (var i = 0; i < this.children.length; i++)
-            this.children[i].just_draw(gl);
+            this.children[i].transform_and_draw(gl, mat, forced);
     },
     draw: function(gl) {
-        this.apply_transforms(new Matrix4(), false);
-        this.just_draw(gl);
+        this.transform_and_draw(gl, new Matrix4(), false);
     },
 };
