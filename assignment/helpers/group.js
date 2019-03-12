@@ -14,41 +14,30 @@ drawableTree.prototype = {
         this.children.push(dt);
         return dt;
     },
-    invalidate_cache: function() {
-        // initially recursive but we need to keep it fast
-        var s = [this];
-        while (s.length > 0) {
-            var d = s.pop();
-            d.cached = false;
-            for (var i = 0; i < d.children.length; i++)
-                s.push(d.children[i]);
-        }
-    },
     transform: function(f) {
         this.f = f;
-        this.invalidate_cache();
+        this.cached = false;
     },
     grouped: function(g) {
         this.g = g;
-        this.invalidate_cache();
+        this.cached = false;
     },
-    apply_transforms: function(fns) {
-        // if we're cached then don't even bother
-        if (this.cached) return;
-        this.cached = true;
-        // put our transformation on the stack
+    apply_transforms: function(fns, forced) {
+        // assumption: we always call draw on the root of
+        // the tree, so any uncached transformations will
+        // propagate to us
+        if (!forced && this.cached) return;
         fns.push(this.g);
-        // transform our own drawable first
         if (this.drawable)
             this.drawable.transform(m => {
                 for (var i = 0; i < fns.length; i++)
                     fns[i](m);
                 this.f(m);
             });
-        // transform our children
+        forced |= !this.cached;
         for (var i = 0; i < this.children.length; i++)
-            this.children[i].apply_transforms(fns);
-        // remove our transformation
+            this.children[i].apply_transforms(fns, forced);
+        this.cached = true;
         fns.pop();
     },
     just_draw: function(gl) {
