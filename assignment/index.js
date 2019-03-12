@@ -272,6 +272,8 @@ function draw_car(gl, no_animation) {
         t += t_step * (dt / 100);
         if (t >= 1.0 || t <= 0.0) {
             t_step = -t_step;
+            if (t > 1.0) t = 1.0;
+            else t = 0.0;
         }
 
         root.grouped(m => {
@@ -738,7 +740,6 @@ function main() {
     var door_open  = true;
 
     g_animations.push(function(dt) {
-        //console.log(dt);
         if (door_open) {
             door_angle += 2 * (dt / 100);
             if (door_angle >= 90) {
