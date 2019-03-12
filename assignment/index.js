@@ -65,6 +65,7 @@ var g_yAngle = -35;
 var g_z = 0;
 var g_x = 0;
 var g_y = 0;
+var g_changed = false;
 
 var ANGLE_STEP = 3.0;
 
@@ -267,8 +268,8 @@ function draw_car(gl, no_animation) {
 
     var t = 0;
     var t_step = 0.01;
-    g_animations.push(function() {
-        t += t_step;
+    g_animations.push(function(dt) {
+        t += t_step * (dt / 100);
         if (t >= 1.0 || t <= 0.0) {
             t_step = -t_step;
         }
@@ -322,9 +323,14 @@ function draw_car(gl, no_animation) {
     });
 }
 
-document.getElementById('enableAnimation').addEventListener('change', function(ev) {
+
+// bind to checkbox
+function check_animation_enabled() {
     g_enable_animations = document.getElementById('enableAnimation').checked;
-});
+}
+document.getElementById('enableAnimation').addEventListener('change', check_animation_enabled);
+check_animation_enabled();
+
 
 function lerp(y0, y1, t) {
     return y0*(1-t) + y1*(t);
@@ -724,22 +730,23 @@ function main() {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         };
-        draw(gl);
+        g_changed = true;
     };
     GrassTexture.image.src = 'resources/grass.jpg';
 
     var door_angle = 0;
     var door_open  = true;
 
-    g_animations.push(function() {
+    g_animations.push(function(dt) {
+        //console.log(dt);
         if (door_open) {
-            door_angle += 2;
-            if (door_angle === 90) {
+            door_angle += 2 * (dt / 100);
+            if (door_angle >= 90) {
                 door_open = false;
             }
         } else {
-            door_angle -= 2;
-            if (door_angle === 0) {
+            door_angle -= 2 * (dt / 100);
+            if (door_angle <= 0) {
                 door_open = true;
             }
         }
@@ -781,7 +788,7 @@ function main() {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         };
-        draw(gl);
+        g_changed = true;
     };
     RoadTexture.image.src = 'resources/road.jpg';
 
@@ -807,7 +814,7 @@ function main() {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         };
-        draw(gl);
+        g_changed = true;
     };
     PavementTexture.image.src = 'resources/pavement.jpg';
 
@@ -844,7 +851,7 @@ function main() {
             //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         };
-        draw(gl);
+        g_changed = true;
     };
     GlassTexture.image.src = 'resources/glass2.jpg';
 
@@ -893,7 +900,7 @@ function main() {
         base3.setup_texture_gl = setup_texture_gl;
         ramp_slab.setup_texture_gl = setup_texture_gl;
         ramp_slope.setup_texture_gl = setup_texture_gl;
-        draw(gl);
+        g_changed = true;
     };
     BrickTexture.image.src = 'resources/brick.jpg';
 
@@ -937,7 +944,7 @@ function main() {
         };
         wall1.setup_texture_gl = setup_texture_gl;
         wall2.setup_texture_gl = setup_texture_gl;
-        draw(gl);
+        g_changed = true;
     };
     WallTexture.image.src = 'resources/wall.jpg';
 
@@ -963,20 +970,29 @@ function main() {
     draw_car(gl, true).grouped(m => m.translate(20, 0, -15));
     draw_car(gl, true).grouped(m => m.translate(20, 0, -20));
     draw_car(gl, true).grouped(m => m.translate(20, 0, -30));
-    draw(gl);
     document.onkeydown = function(ev) {
         keydown(ev, gl);
     };
+    mainLoop(gl);
+}
 
-    function animate() {
+
+function mainLoop(gl) {
+    var t_prev = 0;
+    function animate(t) {
+        if (t_prev === 0) t_prev = t;
+        var dt = t - t_prev;
+        t_prev = t;
         if (g_enable_animations) {
             for (var i = 0; i < g_animations.length; i++)
-                g_animations[i]();
-            draw(gl);
+                g_animations[i](dt);
         }
-        setTimeout(animate, 100);
+        if (g_enable_animations || g_changed)
+            draw(gl);
+        g_changed = false;
+        window.requestAnimationFrame(animate);
     }
-    animate();
+    window.requestAnimationFrame(animate);
 }
 
 function keydown(ev, gl) {
@@ -993,10 +1009,8 @@ function keydown(ev, gl) {
         case 37: /* Left */  g_yAngle = (g_yAngle - ANGLE_STEP) % 360; break;
         default: return;
     }
-    // Draw the scene
-    // But after we handle the event; for some reason this feels faster
     ev.preventDefault();
-    setTimeout(() => draw(gl), 0);
+    g_changed = true;
 }
 
 var g_attr_cache = null;
