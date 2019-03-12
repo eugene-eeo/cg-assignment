@@ -502,6 +502,205 @@ function main() {
         mm.scale(1, 2, 0.125);
     });
 
+    var railing1 = unit_cube([0.8, 0.8, 0.8]);
+    var railing2 = unit_cube([0.8, 0.8, 0.8]);
+    var railing3 = unit_cube([0.8, 0.8, 0.8]);
+    var railing4 = unit_cube([0.8, 0.8, 0.8]);
+    var railing5 = unit_cube([0.8, 0.8, 0.8]);
+    var railing6 = unit_cube([0.8, 0.8, 0.8]);
+    var railing7 = unit_cube([0.8, 0.8, 0.8]);
+    var railing8 = unit_cube([0.8, 0.8, 0.8]);
+    var railing9 = unit_cube([0.8, 0.8, 0.8]);
+
+    var railing10 = unit_cube([0.8, 0.8, 0.8]);
+    var railing11 = unit_cube([0.8, 0.8, 0.8]);
+    var railing12 = unit_cube([0.8, 0.8, 0.8]);
+    var railing13 = unit_cube([0.8, 0.8, 0.8]);
+    var railing14 = unit_cube([0.8, 0.8, 0.8]);
+    var railing15 = unit_cube([0.8, 0.8, 0.8]);
+    var railing16 = unit_cube([0.8, 0.8, 0.8]);
+
+    railing1.transform(mm => {
+        mm.translate(8 - 0.0625, -1, 11);
+        mm.scale(0.0625, 0.0625, 1);
+    });
+    railing2.transform(mm => {
+        mm.translate(9 + 0.0625 * 2, -1, 12);
+        mm.scale(1.25, 0.0625, 0.0625);
+    });
+    railing3.transform(mm => {
+        mm.translate(12.125 + 0.0625 * 2, -1.5, 12);
+        mm.rotate(-15, 0, 0, 1);
+        mm.scale(2, 0.0625, 0.0625);
+    });
+    railing4.transform(mm => {
+        mm.translate(8 - 0.05, -1 -0.35, 11);
+        mm.scale(0.05, 0.05, 1);
+    });
+    railing5.transform(mm => {
+        mm.translate(9 + 0.05 * 2, -1 -0.35, 12);
+        mm.scale(1.25, 0.05, 0.05);
+    });
+    railing6.transform(mm => {
+        mm.translate(12.125 + 0.05 * 2, -1.5 - 0.35, 12);
+        mm.rotate(-15, 0, 0, 1);
+        mm.scale(1.95, 0.05, 0.05);
+    });
+    railing7.transform(mm => {
+        mm.translate(8 - 0.05, -1 -0.70, 11);
+        mm.scale(0.05, 0.05, 1);
+    });
+    railing8.transform(mm => {
+        mm.translate(9 + 0.05 * 2, -1 -0.70, 12);
+        mm.scale(1.25, 0.05, 0.05);
+    });
+    railing9.transform(mm => {
+        mm.translate(12.125 + 0.05 * 2, -1.5 - 0.70, 12);
+        mm.rotate(-15, 0, 0, 1);
+        mm.scale(1.95, 0.05, 0.05);
+    });
+
+    railing10.transform(mm => {
+        mm.translate(8, -1 -0.70, 12);
+        mm.scale(0.05, 0.75, 0.05);
+    });
+
+    railing11.transform(mm => {
+        mm.translate(8 + 1, -1 -0.70, 12);
+        mm.scale(0.05, 0.75, 0.05);
+    });
+
+    railing12.transform(mm => {
+        mm.translate(8 + 2, -1 -0.70, 12);
+        mm.scale(0.05, 0.75, 0.05);
+    });
+
+    railing13.transform(mm => {
+        mm.translate(8 + 3, -1 -0.70 - 0.16, 12);
+        mm.scale(0.05, 0.75, 0.05);
+    });
+
+    railing14.transform(mm => {
+        mm.translate(8 + 4, -1 -0.70 - 0.33, 12);
+        mm.scale(0.05, 0.65, 0.05);
+    });
+
+    railing15.transform(mm => {
+        mm.translate(8 + 5, -1 -0.70 - 0.55, 12);
+        mm.scale(0.05, 0.6, 0.05);
+    });
+
+    railing16.transform(mm => {
+        mm.translate(8 + 6, -1 -0.70 - 0.75, 12);
+        mm.scale(0.05, 0.50, 0.05);
+    });
+
+    g_drawables.push(railing1);
+    g_drawables.push(railing2);
+    g_drawables.push(railing3);
+    g_drawables.push(railing4);
+    g_drawables.push(railing5);
+    g_drawables.push(railing6);
+    g_drawables.push(railing7);
+    g_drawables.push(railing8);
+    g_drawables.push(railing9);
+    g_drawables.push(railing10);
+    g_drawables.push(railing11);
+    g_drawables.push(railing12);
+    g_drawables.push(railing13);
+    g_drawables.push(railing14);
+    g_drawables.push(railing15);
+    g_drawables.push(railing16);
+
+    var wall1_railing1 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing2 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing3 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing4 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing5 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing6 = unit_cube([0.8, 0.8, 0.8]);
+    var wall1_railing7 = unit_cube([0.8, 0.8, 0.8]);
+
+    var wall2_railing1 = unit_cube([0.8, 0.8, 0.8]);
+    var wall2_railing2 = unit_cube([0.8, 0.8, 0.8]);
+    var wall2_railing3 = unit_cube([0.8, 0.8, 0.8]);
+    var wall2_railing4 = unit_cube([0.8, 0.8, 0.8]);
+
+    wall1_railing1.transform(mm => {
+        mm.translate(-5, -1, 17.5);
+        mm.scale(0.0625, 0.0625, 7.5);
+    });
+
+    wall1_railing2.transform(mm => {
+        mm.translate(-5, -1.5, 17.5);
+        mm.scale(0.0625, 0.0625, 7.5);
+    });
+
+    wall1_railing3.transform(mm => {
+        mm.translate(-5, -1 - 0.5, 13);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall1_railing4.transform(mm => {
+        mm.translate(-5, -1 - 0.5, 16);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall1_railing5.transform(mm => {
+        mm.translate(-5, -1 - 0.5, 19);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall1_railing6.transform(mm => {
+        mm.translate(-5, -1 - 0.5, 22);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall1_railing7.transform(mm => {
+        mm.translate(-5, -1 - 0.5, 25 - 0.0625);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall2_railing1.transform(mm => {
+        mm.translate(-5 + 2, -1, 25 - 0.0625);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.0625, 0.0625, 2);
+    });
+
+    wall2_railing2.transform(mm => {
+        mm.translate(-5 + 2, -1.5, 25 - 0.0625);
+        mm.rotate(90, 0, 1, 0);
+        mm.scale(0.0625, 0.0625, 2);
+    });
+
+    wall2_railing3.transform(mm => {
+        mm.translate(-5 + 2, -1 - 0.5, 25 - 0.0625);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    wall2_railing4.transform(mm => {
+        mm.translate(-5 + 4 - 0.0625, -1 - 0.5, 25 - 0.0625);
+        mm.rotate(90, 1, 0, 0);
+        mm.scale(0.0625, 0.0625, 0.56);
+    });
+
+    g_drawables.push(wall1_railing1);
+    g_drawables.push(wall1_railing2);
+    g_drawables.push(wall1_railing3);
+    g_drawables.push(wall1_railing4);
+    g_drawables.push(wall1_railing5);
+    g_drawables.push(wall1_railing6);
+    g_drawables.push(wall1_railing7);
+    g_drawables.push(wall2_railing1);
+    g_drawables.push(wall2_railing2);
+    g_drawables.push(wall2_railing3);
+    g_drawables.push(wall2_railing4);
+
     var grass = unit_cube([0, 1, 0]);
     grass.transform(mm => {
         mm.translate(10, -2, -24);
@@ -700,13 +899,13 @@ function main() {
 
     var wall1 = unit_cube([1, 0, 0]);
     wall1.transform(mm => {
-        mm.translate(-5, -2 - 0.0625, 18 - 1);
-        mm.scale(0.25, 1, 8);
+        mm.translate(-5, -2 - 0.0625 - 0.5, 18 - 1);
+        mm.scale(0.25, 0.5, 8);
     });
     var wall2 = unit_cube([1, 0, 0]);
     wall2.transform(mm => {
-        mm.translate(-3, -2 - 0.0625, 25 - 0.25);
-        mm.scale(2, 1, 0.25);
+        mm.translate(-3, -2 - 0.0625 - 0.5, 25 - 0.25);
+        mm.scale(2, 0.5, 0.25);
     });
 
     var WallTexture = gl.createTexture();
@@ -715,20 +914,20 @@ function main() {
         wall1.texture_data = WallTexture;
         wall2.texture_data = WallTexture;
         wall1.texture_coords = new Float32Array([
-            0.25, 0.5,    0.0, 0.5,   0.0, 0.0,   0.25, 0.0,  // v0-v1-v2-v3 front
-            0.0, 0.5,    0.0, 0.0,   2.0, 0.0,   2.0, 0.5,  // v0-v3-v4-v5 right
-            2.0, 0.0,    2.0, 0.5,   0.0, 0.5,   0.0, 0.0,  // v0-v5-v6-v1 up
-            2.0, 0.5,    0.0, 0.5,   0.0, 0.0,   2.0, 0.0,  // v1-v6-v7-v2 left
-            0.0, 0.0,    2.0, 0.0,   2.0, 0.5,   0.0, 0.5,  // v7-v4-v3-v2 down
+            0.25, 0.25,    0.0, 0.25,   0.0, 0.0,   0.25, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.25,    0.0, 0.0,   2.0, 0.0,   2.0, 0.25,  // v0-v3-v4-v5 right
+            0.25, 0.0,    0.25, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            1.0, 0.25,    0.0, 0.25,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    1.0, 0.0,   2.0, 0.25,   0.0, 0.25,  // v7-v4-v3-v2 down
             0.0, 0.0,    6.0, 0.0,   6.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
         ]);
         wall2.texture_coords = new Float32Array([
-            1.0, 0.5,    0.0, 0.5,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
-            0.0, 0.5,    0.0, 0.0,   3.0, 0.0,   3.0, 0.5,  // v0-v3-v4-v5 right
-            3.0, 0.0,    3.0, 0.5,   0.0, 0.5,   0.0, 0.0,  // v0-v5-v6-v1 up
-            3.0, 0.5,    0.0, 0.5,   0.0, 0.0,   3.0, 0.0,  // v1-v6-v7-v2 left
-            0.0, 0.0,    3.0, 0.0,   3.0, 0.5,   0.0, 0.5,  // v7-v4-v3-v2 down
-            0.0, 0.0,    6.0, 0.0,   6.0, 0.5,   0.0, 0.5   // v4-v7-v6-v5 back
+            1.0, 0.25,    0.0, 0.25,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
+            0.0, 0.25,    0.0, 0.0,   1.0, 0.0,   1.0, 0.25,  // v0-v3-v4-v5 right
+            0.25, 0.0,    0.25, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            1.0, 0.25,    0.0, 0.25,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
+            0.0, 0.0,    1.0, 0.0,   3.0, 0.25,   0.0, 0.25,  // v7-v4-v3-v2 down
+            0.0, 0.0,    6.0, 0.0,   6.0, 0.25,   0.0, 0.25   // v4-v7-v6-v5 back
         ]);
 
         var setup_texture_gl = (gl) => {
