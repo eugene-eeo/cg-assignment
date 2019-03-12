@@ -34,6 +34,10 @@ uniform vec3 u_LightColor;
 uniform vec3 u_AmbientLight;
 uniform vec3 u_LightDirection;
 
+uniform bool u_SecondLightSource;
+uniform vec3 u_SecondLightColor;
+uniform vec3 u_SecondLightDirection;
+
 varying vec4 v_Color;
 varying vec3 v_Position;
 varying vec3 v_Normal;
@@ -45,11 +49,23 @@ void main() {
     float nDotL = max(dot(lightDirection, normal), 0.0);
     vec3 diffuse;
     vec3 ambient;
+    vec4 TexColor;
     if (u_UseTextures) {
-        vec4 TexColor = texture2D(u_Sampler, v_TexCoords);
+        TexColor = texture2D(u_Sampler, v_TexCoords);
         diffuse = u_LightColor * TexColor.rgb * nDotL * 1.2;
     } else {
         diffuse = u_LightColor * v_Color.rgb * nDotL;
+    }
+    if (u_SecondLightSource) {
+        lightDirection = normalize(u_SecondLightDirection - v_Position);
+        nDotL = max(dot(lightDirection, normal), 0.0);
+        if (u_UseTextures) {
+            //diffuse = diffuse * 0.5;
+            diffuse += u_SecondLightColor * TexColor.rgb * nDotL * 1.2;
+        } else {
+            //diffuse = diffuse * 0.5;
+            diffuse += u_SecondLightColor * v_Color.rgb * nDotL;
+        }
     }
     ambient = u_AmbientLight * v_Color.rgb;
     gl_FragColor = vec4(diffuse + ambient, v_Color.a);
@@ -66,6 +82,7 @@ var g_z = 0;
 var g_x = 0;
 var g_y = 0;
 var g_changed = false;
+var g_sunset = false;
 
 var ANGLE_STEP = 3.0;
 
@@ -332,6 +349,14 @@ function check_animation_enabled() {
 }
 document.getElementById('enableAnimation').addEventListener('change', check_animation_enabled);
 check_animation_enabled();
+
+
+function check_sunset_mode() {
+    g_sunset = document.getElementById('enableSunset').checked;
+    g_changed = true;
+}
+document.getElementById('enableSunset').addEventListener('change', check_sunset_mode);
+check_sunset_mode();
 
 
 function lerp(y0, y1, t) {
@@ -722,7 +747,7 @@ function main() {
         grass.texture_coords = new Float32Array([
             5.0, 1.0,    0.0, 1.0,   0.0, 0.0,   5.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
-            1.0, 0.0,    1.0, 5.0,   0.0, 5.0,   0.0, 0.0,  // v0-v5-v6-v1 up
+            5.0, 0.0,    5.0, 1.0,   0.0, 1.0,   0.0, 0.0,  // v0-v5-v6-v1 up
             1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v1-v6-v7-v2 left
             0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    5.0, 0.0,   5.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
@@ -744,11 +769,13 @@ function main() {
             door_angle += 2 * (dt / 100);
             if (door_angle >= 90) {
                 door_open = false;
+                door_angle = 90;
             }
         } else {
             door_angle -= 2 * (dt / 100);
             if (door_angle <= 0) {
                 door_open = true;
+                door_angle = 0;
             }
         }
 
@@ -785,9 +812,10 @@ function main() {
             0.0, 0.0,    5.0, 0.0,   5.0, 5.0,   0.0, 5.0   // v4-v7-v6-v5 back
         ]);
         road.setup_texture_gl = (gl) => {
+            gl.generateMipmap(gl.TEXTURE_2D);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         };
         g_changed = true;
     };
@@ -811,9 +839,10 @@ function main() {
             0.0, 0.0,    4.0, 0.0,   4.0, 4.0,   0.0, 4.0   // v4-v7-v6-v5 back
         ]);
         pavement.setup_texture_gl = (gl) => {
+            gl.generateMipmap(gl.TEXTURE_2D);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         g_changed = true;
     };
@@ -848,9 +877,8 @@ function main() {
         entrance_door_left.texture_data = GlassTexture;
         entrance_door_right.texture_data = GlassTexture;
         entrance_glass.setup_texture_gl = entrance_door_left.setup_texture_gl = entrance_door_right.setup_texture_gl = (gl) => {
-            //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         g_changed = true;
     };
@@ -892,9 +920,11 @@ function main() {
         ]);
 
         var setup_texture_gl = (gl) => {
+            gl.generateMipmap(gl.TEXTURE_2D);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         base1.setup_texture_gl = setup_texture_gl;
         base2.setup_texture_gl = setup_texture_gl;
@@ -939,9 +969,10 @@ function main() {
         ]);
 
         var setup_texture_gl = (gl) => {
+            gl.generateMipmap(gl.TEXTURE_2D);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         wall1.setup_texture_gl = setup_texture_gl;
         wall2.setup_texture_gl = setup_texture_gl;
@@ -988,7 +1019,7 @@ function mainLoop(gl) {
             for (var i = 0; i < g_animations.length; i++)
                 g_animations[i](dt);
         if (g_enable_animations || g_changed)
-            draw(gl);
+            draw(gl, g_sunset);
         g_changed = false;
         window.requestAnimationFrame(animate);
     }
@@ -1004,8 +1035,8 @@ function keydown(ev, gl) {
         case 74:  /* j */ g_y -= 1; break;
         case 75:  /* k */ g_y += 1; break;
         case 76:  /* l */ g_x += 1; break;
-        case 173: /* - */ g_z = (g_z + ANGLE_STEP); break;
-        case 61:  /* = */ g_z = (g_z - ANGLE_STEP); break;
+        case 173: /* - */ g_z += 1; break;
+        case 61:  /* = */ g_z -= 1; break;
         case 40:  /* Up */   g_xAngle = (g_xAngle + ANGLE_STEP) % 360; break;
         case 38:  /* Down */ g_xAngle = (g_xAngle - ANGLE_STEP) % 360; break;
         case 39: /* Right */ g_yAngle = (g_yAngle + ANGLE_STEP) % 360; break;
@@ -1018,23 +1049,41 @@ function keydown(ev, gl) {
 
 var g_attr_cache = null;
 
-function draw(gl) {
+function draw(gl, sunset) {
     // Get the storage locations of u_ModelMatrix, u_ViewMatrix, and u_ProjMatrix
     if (!g_attr_cache) {
         g_attr_cache = {};
-        g_attr_cache.u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
-        g_attr_cache.u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
-        g_attr_cache.u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
-        g_attr_cache.u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
-        g_attr_cache.u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
+        g_attr_cache.u_ViewMatrix           = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
+        g_attr_cache.u_ProjMatrix           = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
+        g_attr_cache.u_LightColor           = gl.getUniformLocation(gl.program, 'u_LightColor');
+        g_attr_cache.u_AmbientLight         = gl.getUniformLocation(gl.program, 'u_AmbientLight');
+        g_attr_cache.u_LightDirection       = gl.getUniformLocation(gl.program, 'u_LightDirection');
+        g_attr_cache.u_SecondLightSource    = gl.getUniformLocation(gl.program, 'u_SecondLightSource');
+        g_attr_cache.u_SecondLightDirection = gl.getUniformLocation(gl.program, 'u_SecondLightDirection');
+        g_attr_cache.u_SecondLightColor     = gl.getUniformLocation(gl.program, 'u_SecondLightColor');
     }
     var viewMatrix = new Matrix4();  // The view matrix
     var projMatrix = new Matrix4();  // The projection matrix
 
+    // Second Light color
+    if (sunset) {
+        gl.uniform1i(g_attr_cache.u_SecondLightSource, true);
+        gl.uniform3f(g_attr_cache.u_SecondLightDirection, 10, 5, 80);
+        gl.uniform3f(g_attr_cache.u_SecondLightColor, 0.8, 0, 0);
+    } else {
+        gl.uniform1i(g_attr_cache.u_SecondLightSource, false);
+    }
+
     // Set Light color and direction
-    gl.uniform3f(g_attr_cache.u_LightColor, 1.0, 1.0, 1.0);
-    gl.uniform3f(g_attr_cache.u_LightDirection, 10, 5, 80);
-    gl.uniform3f(g_attr_cache.u_AmbientLight, 0.1, 0.1, 0.1);
+    if (sunset) {
+        gl.uniform3f(g_attr_cache.u_LightDirection, -10, 5, 80);
+        gl.uniform3f(g_attr_cache.u_LightColor, 0, 0.8, 0);
+        gl.uniform3f(g_attr_cache.u_AmbientLight, 0, 0, 0);
+    } else {
+        gl.uniform3f(g_attr_cache.u_LightDirection, 10, 5, 80);
+        gl.uniform3f(g_attr_cache.u_LightColor, 1.0, 1.0, 1.0);
+        gl.uniform3f(g_attr_cache.u_AmbientLight, 0.1, 0.1, 0.1);
+    }
 
     // Calculate the view matrix and the projection matrix
     viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);

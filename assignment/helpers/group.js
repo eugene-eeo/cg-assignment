@@ -22,16 +22,17 @@ drawableTree.prototype = {
         this.g = g;
         this.cached = false;
     },
+    // assumption: we always call draw on the root of
+    // the tree, so any uncached transformations will
+    // propagate to us. otherwise this function is not
+    // correct in general.
     transform_and_draw: function(gl, matrix, forced) {
-        // assumption: we always call draw on the root of
-        // the tree, so any uncached transformations will
-        // propagate to us
         if (!this.cached) forced = true;
         if (forced) {
             var mat = (new Matrix4()).set(matrix);
             this.g(mat);
             if (this.drawable)
-                this.drawable.transform(m => this.f(m.set(mat)));
+                this.drawable.transform_inplace(m => this.f(m.set(mat)));
             this.cached = true;
         }
         if (this.drawable)
