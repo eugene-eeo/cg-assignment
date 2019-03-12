@@ -28,11 +28,11 @@ drawableTree.prototype = {
         // propagate to us
         if (!forced && this.cached) return;
         var mat = new Matrix4();
-        mat.concat(matrix);
+        mat.set(matrix);
         this.g(mat);
         if (this.drawable)
             this.drawable.transform(m => {
-                m.concat(mat);
+                m.set(mat);
                 this.f(m);
             });
         forced |= !this.cached;
