@@ -1,25 +1,29 @@
-function initArrayBuffer(gl, attribute, data, num, type) {
-    var buffer = gl.createBuffer();
-    if (!buffer)
-        return false;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    // Assign buffer object to attribute
-    var a_attr = gl.getAttribLocation(gl.program, attribute);
-    if (a_attr < 0)
-        return false;
-    gl.vertexAttribPointer(a_attr, num, type, false, data.BYTES_PER_ELEMENT * num, 0);
-    gl.enableVertexAttribArray(a_attr);
-    return true;
-}
+!function() {
+    var attrs = {};
 
+    function lookup(gl, attribute) {
+        if (attrs[attribute] === undefined)
+            attrs[attribute] = gl.getAttribLocation(gl.program, attribute);
+        return attrs[attribute];
+    }
 
-function disableArrayBuffer(gl, attribute) {
-    var a_attr = gl.getAttribLocation(gl.program, attribute);
-    if (a_attr < 0)
-        return false;
-    gl.disableVertexAttribArray(a_attr);
-}
+    window.initArrayBuffer = function(gl, attribute, data, num, type) {
+        var buffer = gl.createBuffer();
+        if (!buffer)
+            return false;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        // Assign buffer object to attribute
+        var a_attr = lookup(gl, attribute);
+        gl.vertexAttribPointer(a_attr, num, type, false, data.BYTES_PER_ELEMENT * num, 0);
+        gl.enableVertexAttribArray(a_attr);
+        return true;
+    }
+
+    window.disableArrayBuffer = function(gl, attribute) {
+        gl.disableVertexAttribArray(lookup(gl, attribute));
+    }
+}();
 
 
 function drawable(vertices, colors, normals, indices) {
