@@ -62,7 +62,11 @@ var g_drawables = [];
 var g_animations = [];
 var g_xAngle = 0;
 var g_yAngle = 0;
+
 var g_z = 0;
+var g_x = 0;
+var g_y = 0;
+
 var ANGLE_STEP = 3.0;
 
 function deg2rad(deg) {
@@ -779,6 +783,18 @@ function main() {
 
 function keydown(ev, gl) {
   switch (ev.keyCode) {
+    case 72: // h
+      g_x -= 1;
+      break;
+    case 74: // j
+      g_y -= 1;
+      break;
+    case 75: // k
+      g_y += 1;
+      break;
+    case 76: // l
+      g_x += 1;
+      break;
     case 173: // minus
       g_z = (g_z + ANGLE_STEP);
       break;
@@ -826,7 +842,7 @@ function draw(gl) {
     gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(10, 0, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
+    viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
     viewMatrix.rotate(g_xAngle, 1, 0, 0);
     viewMatrix.rotate(g_yAngle, 0, 1, 0);
 
