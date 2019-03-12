@@ -60,9 +60,8 @@ var g_canvas = document.getElementById('webgl');
 var g_enable_animations = true;
 var g_drawables = [];
 var g_animations = [];
-var g_xAngle = 0;
-var g_yAngle = 0;
-
+var g_xAngle = 10;
+var g_yAngle = -35;
 var g_z = 0;
 var g_x = 0;
 var g_y = 0;
@@ -782,64 +781,44 @@ function main() {
 }
 
 function keydown(ev, gl) {
-  switch (ev.keyCode) {
-    case 72: // h
-      g_x -= 1;
-      break;
-    case 74: // j
-      g_y -= 1;
-      break;
-    case 75: // k
-      g_y += 1;
-      break;
-    case 76: // l
-      g_x += 1;
-      break;
-    case 173: // minus
-      g_z = (g_z + ANGLE_STEP);
-      break;
-    case 61:  // equals
-      g_z = (g_z - ANGLE_STEP);
-      break;
-    case 40: // Up arrow key -> the positive rotation of arm1 around the y-axis
-      g_xAngle = (g_xAngle + ANGLE_STEP) % 360;
-      break;
-    case 38: // Down arrow key -> the negative rotation of arm1 around the y-axis
-      g_xAngle = (g_xAngle - ANGLE_STEP) % 360;
-      break;
-    case 39: // Right arrow key -> the positive rotation of arm1 around the y-axis
-      g_yAngle = (g_yAngle + ANGLE_STEP) % 360;
-      break;
-    case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
-      g_yAngle = (g_yAngle - ANGLE_STEP) % 360;
-      break;
-    default: return; // Skip drawing at no effective action
-  }
-
-  // Draw the scene
-  // But after we handle the event; for some reason this feels faster
-  ev.preventDefault();
-  setTimeout(function() { draw(gl) }, 0);
+    switch (ev.keyCode) {
+        case 72:  /* h */ g_x -= 1; break;
+        case 74:  /* j */ g_y -= 1; break;
+        case 75:  /* k */ g_y += 1; break;
+        case 76:  /* l */ g_x += 1; break;
+        case 173: /* - */ g_z = (g_z + ANGLE_STEP); break;
+        case 61:  /* = */ g_z = (g_z - ANGLE_STEP); break;
+        case 40:  /* Up */   g_xAngle = (g_xAngle + ANGLE_STEP) % 360; break;
+        case 38:  /* Down */ g_xAngle = (g_xAngle - ANGLE_STEP) % 360; break;
+        case 39: /* Right */ g_yAngle = (g_yAngle + ANGLE_STEP) % 360; break;
+        case 37: /* Left */  g_yAngle = (g_yAngle - ANGLE_STEP) % 360; break;
+        default: return;
+    }
+    // Draw the scene
+    // But after we handle the event; for some reason this feels faster
+    ev.preventDefault();
+    setTimeout(() => draw(gl), 0);
 }
 
+var g_attr_cache = null;
+
 function draw(gl) {
-    // Clear color and depth buffer
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     // Get the storage locations of u_ModelMatrix, u_ViewMatrix, and u_ProjMatrix
-    var u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
-    var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
-    var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
-    var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
-    var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
-
+    if (!g_attr_cache) {
+        g_attr_cache = {};
+        g_attr_cache.u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
+        g_attr_cache.u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
+        g_attr_cache.u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
+        g_attr_cache.u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
+        g_attr_cache.u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
+    }
     var viewMatrix = new Matrix4();  // The view matrix
     var projMatrix = new Matrix4();  // The projection matrix
 
     // Set Light color and direction
-    gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
-    gl.uniform3f(u_LightDirection, 10, 5, 80);
-    gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
+    gl.uniform3f(g_attr_cache.u_LightColor, 1.0, 1.0, 1.0);
+    gl.uniform3f(g_attr_cache.u_LightDirection, 10, 5, 80);
+    gl.uniform3f(g_attr_cache.u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
     viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
@@ -848,10 +827,10 @@ function draw(gl) {
 
     projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
-    gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
-    gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
+    gl.uniformMatrix4fv(g_attr_cache.u_ViewMatrix, false, viewMatrix.elements);
+    gl.uniformMatrix4fv(g_attr_cache.u_ProjMatrix, false, projMatrix.elements);
 
-    g_drawables.forEach(function(d) {
-        d.draw(gl);
-    });
+    // Clear color and depth buffer
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    g_drawables.forEach(d => d.draw(gl));
 }

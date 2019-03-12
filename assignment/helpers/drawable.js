@@ -15,7 +15,6 @@ function initArrayBuffer(gl, attribute, data, num, type) {
 
 
 function disableArrayBuffer(gl, attribute) {
-    // Assign buffer object to attribute
     var a_attr = gl.getAttribLocation(gl.program, attribute);
     if (a_attr < 0)
         return false;

@@ -26,7 +26,8 @@ drawableTree.prototype = {
         // assumption: we always call draw on the root of
         // the tree, so any uncached transformations will
         // propagate to us
-        if (!forced && this.cached) return;
+        if (!this.cached) forced = true;
+        if (!forced) return;
         var mat = new Matrix4();
         mat.set(matrix);
         this.g(mat);
@@ -35,10 +36,9 @@ drawableTree.prototype = {
                 m.set(mat);
                 this.f(m);
             });
-        forced |= !this.cached;
+        this.cached = true;
         for (var i = 0; i < this.children.length; i++)
             this.children[i].apply_transforms(mat, forced);
-        this.cached = true;
     },
     just_draw: function(gl) {
         // just draw to gl please
@@ -48,7 +48,7 @@ drawableTree.prototype = {
             this.children[i].just_draw(gl);
     },
     draw: function(gl) {
-        this.apply_transforms(new Matrix4());
+        this.apply_transforms(new Matrix4(), false);
         this.just_draw(gl);
     },
 };
