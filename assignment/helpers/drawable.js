@@ -128,7 +128,7 @@ drawable.prototype.draw = function(gl) {
 
 
 function bulk_translate(template, translates) {
-    return translates.map(function(xyz) {
+    return translates.map(xyz => {
         var x = xyz[0];
         var y = xyz[1];
         var z = xyz[2];

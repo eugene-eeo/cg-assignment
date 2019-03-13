@@ -62,15 +62,23 @@ void main() {
 `;
 
 var g_canvas = document.getElementById('webgl');
-var g_enable_animations = true;
 var g_drawables = [];
-var g_animations = [];
 var g_xAngle = 10;
 var g_yAngle = -35;
 var g_z = 0;
 var g_x = 0;
 var g_y = 0;
 var g_changed = false;
+
+// to be animated
+var g_car = null;
+var g_car_back_wheels = null;
+var g_car_front_wheels = null;
+var g_car_door1 = null;
+var g_car_boot = null;
+var g_entrance_left = null;
+var g_entrance_right = null;
+var g_animate = () => {};
 
 var ANGLE_STEP = 3.0;
 
@@ -271,79 +279,22 @@ function draw_car(gl, no_animation) {
     if (no_animation)
         return root;
 
-    var t = 0;
-    var t_step = 0.01;
-
     root.grouped(m => {
-        if (t > 0.25) {
-            m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
-        }
         m.translate(8, 0, -4);
         m.rotate(90, 0, 1, 0);
     });
-
-    boot.grouped(m => {
-        if (t <= 0.25) {
-            var angle = lerp(90, 0, t / 0.25);
-            var l = 4 + 0.125;
-            var dx = (l / 2) - (l / 2) * Math.cos(deg2rad(angle));
-            var dy = (l / 2) * Math.sin(deg2rad(angle));
-            m.translate(0, -1.8*dy, dx);
-            m.rotate(-angle, 1, 0, 0);
-        }
-    });
-
-    door1.transform(mm => {
-        if (t <= 0.25) {
-            var angle = lerp(90, 0, t / 0.25);
-            var dz = Math.sin(deg2rad(angle));
-            var dx = 0.5 * Math.sin(deg2rad(angle));
-            mm.translate(-2 - dx, -1.5, 0 - dz);
-            mm.rotate(-angle, 0, 1, 0);
-        } else {
-            mm.translate(-2, -1.5, 0);
-        }
-        mm.scale(0.125, 0.8, 1);
-    });
-
-    front_wheels.grouped(m => {
-        m.translate(0, -2, 2.5);
-        if (t > 0.25) {
-            m.rotate(lerp(0, -360, (t - 0.25) / 0.75), 1, 0, 0); // wheel spin
-        }
-    });
-    back_wheels.grouped(m => {
-        m.translate(0, -2, -2.5);
-        if (t > 0.25) {
-            var b = (t - 0.25) / 0.75;
-            m.rotate(lerp(0, -30, b), 0, 1, 0);  // wheel direction
-            m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
-        }
-    });
-
-    g_animations.push(function(dt) {
-        t += t_step * (dt / 100);
-        if (t >= 1.0 || t <= 0.0) {
-            t_step = -t_step;
-            if (t > 1.0) t = 1.0;
-            else t = 0.0;
-        }
-        root.cached = false;
-    });
+    g_car = root;
+    g_car_boot = boot;
+    g_car_back_wheels = back_wheels;
+    g_car_front_wheels = front_wheels;
+    g_car_door1 = door1;
 }
-
-
-// bind to checkbox
-function check_animation_enabled() {
-    g_enable_animations = document.getElementById('enableAnimation').checked;
-}
-document.getElementById('enableAnimation').addEventListener('change', check_animation_enabled);
-check_animation_enabled();
 
 
 function lerp(y0, y1, t) {
     return y0*(1-t) + y1*(t);
 }
+
 
 function main() {
     // Get the rendering context for WebGL
@@ -745,43 +696,6 @@ function main() {
     };
     GrassTexture.image.src = 'resources/grass.jpg';
 
-    var door_angle = 0;
-    var door_open  = true;
-    var dz = 0;
-    var dx = 0;
-
-    function animate_left_door(mm) {
-        mm.translate(1.5 - dx, -1, 12.625 + dz);
-        mm.rotate(-door_angle, 0, 1, 0);
-        mm.scale(1, 2, 0.125);
-    }
-
-    function animate_right_door(mm) {
-        mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
-        mm.rotate(door_angle, 0, 1, 0);
-        mm.scale(1, 2, 0.125);
-    }
-
-    g_animations.push(function(dt) {
-        if (door_open) {
-            door_angle += 2 * (dt / 100);
-            if (door_angle >= 90) {
-                door_open = false;
-                door_angle = 90;
-            }
-        } else {
-            door_angle -= 2 * (dt / 100);
-            if (door_angle <= 0) {
-                door_open = true;
-                door_angle = 0;
-            }
-        }
-        dz = Math.sin(deg2rad(door_angle));
-        dx = 0.5 * Math.sin(deg2rad(door_angle));
-        entrance_door_left.transform(animate_left_door);
-        entrance_door_right.transform(animate_right_door);
-    });
-
     var road = unit_cube([1, 1, 1]);
     road.transform(mm => {
         mm.translate(10 + 5, -3 -0.125 - 0.0625, 0);
@@ -959,6 +873,9 @@ function main() {
     };
     WallTexture.image.src = 'resources/wall.jpg';
 
+    g_entrance_left = entrance_door_left;
+    g_entrance_right = entrance_door_right;
+
     g_drawables.push(wall1);
     g_drawables.push(wall2);
     g_drawables.push(base1);
@@ -988,24 +905,116 @@ function main() {
 }
 
 
+function on_animate_clicked() {
+    var door_open = true;
+    var door_angle = 0;
+    var t = 0;
+
+    g_car.grouped(m => {
+        if (t > 0.25) {
+            m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
+        }
+        m.translate(8, 0, -4);
+        m.rotate(90, 0, 1, 0);
+    });
+
+    g_car_boot.grouped(m => {
+        if (t <= 0.25) {
+            var angle = lerp(90, 0, t / 0.25);
+            var l = 4 + 0.125;
+            var dx = (l / 2) - (l / 2) * Math.cos(deg2rad(angle));
+            var dy = (l / 2) * Math.sin(deg2rad(angle));
+            m.translate(0, -1.8*dy, dx);
+            m.rotate(-angle, 1, 0, 0);
+        }
+    });
+
+    g_car_door1.transform(mm => {
+        if (t <= 0.25) {
+            var angle = lerp(90, 0, t / 0.25);
+            var dz = Math.sin(deg2rad(angle));
+            var dx = 0.5 * Math.sin(deg2rad(angle));
+            mm.translate(-2 - dx, -1.5, 0 - dz);
+            mm.rotate(-angle, 0, 1, 0);
+        } else {
+            mm.translate(-2, -1.5, 0);
+        }
+        mm.scale(0.125, 0.8, 1);
+    });
+
+    g_car_front_wheels.grouped(m => {
+        m.translate(0, -2, 2.5);
+        if (t > 0.25) {
+            m.rotate(lerp(0, -360, (t - 0.25) / 0.75), 1, 0, 0); // wheel spin
+        }
+    });
+
+    g_car_back_wheels.grouped(m => {
+        m.translate(0, -2, -2.5);
+        if (t > 0.25) {
+            var b = (t - 0.25) / 0.75;
+            m.rotate(lerp(0, -30, b), 0, 1, 0);  // wheel direction
+            m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
+        }
+    });
+
+    g_animate = function(dt) {
+        t += 0.01 * (dt / 100);
+        if (t > 1.0) {
+            g_animate = () => {};
+        }
+        g_car.cached = false;
+        g_changed = true;
+
+        if (door_open) {
+            door_angle += 2 * (dt / 100);
+            if (door_angle >= 90) {
+                door_open = false;
+                door_angle = 90;
+            }
+        } else {
+            door_angle -= 2 * (dt / 100);
+            if (door_angle <= 0) {
+                door_open = true;
+                door_angle = 0;
+            }
+        }
+        var dz = Math.sin(deg2rad(door_angle));
+        var dx = 0.5 * Math.sin(deg2rad(door_angle));
+
+        g_entrance_left.transform(mm => {
+            mm.translate(1.5 - dx, -1, 12.625 + dz);
+            mm.rotate(-door_angle, 0, 1, 0);
+            mm.scale(1, 2, 0.125);
+        });
+
+        g_entrance_right.transform(mm => {
+            mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
+            mm.rotate(door_angle, 0, 1, 0);
+            mm.scale(1, 2, 0.125);
+        });
+    };
+}
+
+
+document.getElementById('animate').onclick = on_animate_clicked;
+
+
 function mainLoop(gl) {
     var t_prev = 0;
     function animate(t) {
         t_prev = t_prev || t;
-        var dt = t - t_prev;
+        g_animate(t - t_prev);
         t_prev = t;
-        if (g_enable_animations)
-            for (var i = 0; i < g_animations.length; i++)
-                g_animations[i](dt);
-        if (g_enable_animations || g_changed)
+        if (g_changed) {
+            g_changed = false;
             draw(gl);
-        g_changed = false;
+        }
         window.requestAnimationFrame(animate);
     }
     // animate one step first
-    for (var i = 0; i < g_animations.length; i++)
-        g_animations[i](0);
-    window.requestAnimationFrame(animate);
+    g_changed = true;
+    animate(0);
 }
 
 function keydown(ev, gl) {
@@ -1026,25 +1035,20 @@ function keydown(ev, gl) {
     g_changed = true;
 }
 
-var g_uniforms = null;
-
 function draw(gl) {
     // Get the storage locations of u_ModelMatrix, u_ViewMatrix, and u_ProjMatrix
-    if (!g_uniforms) {
-        g_uniforms = {};
-        g_uniforms.u_ViewMatrix           = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
-        g_uniforms.u_ProjMatrix           = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
-        g_uniforms.u_LightColor           = gl.getUniformLocation(gl.program, 'u_LightColor');
-        g_uniforms.u_AmbientLight         = gl.getUniformLocation(gl.program, 'u_AmbientLight');
-        g_uniforms.u_LightDirection       = gl.getUniformLocation(gl.program, 'u_LightDirection');
-    }
+    var u_ViewMatrix     = lookupUniform(gl, 'u_ViewMatrix');
+    var u_ProjMatrix     = lookupUniform(gl, 'u_ProjMatrix');
+    var u_LightColor     = lookupUniform(gl, 'u_LightColor');
+    var u_AmbientLight   = lookupUniform(gl, 'u_AmbientLight');
+    var u_LightDirection = lookupUniform(gl, 'u_LightDirection');
     var viewMatrix = new Matrix4();  // The view matrix
     var projMatrix = new Matrix4();  // The projection matrix
 
     // Set Light color and direction
-    gl.uniform3f(g_uniforms.u_LightDirection, 10, 5, 80);
-    gl.uniform3f(g_uniforms.u_LightColor, 1.0, 1.0, 1.0);
-    gl.uniform3f(g_uniforms.u_AmbientLight, 0.1, 0.1, 0.1);
+    gl.uniform3f(u_LightDirection, 10, 5, 80);
+    gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
+    gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
     viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
@@ -1053,8 +1057,8 @@ function draw(gl) {
 
     projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
-    gl.uniformMatrix4fv(g_uniforms.u_ViewMatrix, false, viewMatrix.elements);
-    gl.uniformMatrix4fv(g_uniforms.u_ProjMatrix, false, projMatrix.elements);
+    gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
+    gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
