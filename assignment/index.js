@@ -56,17 +56,6 @@ void main() {
     } else {
         diffuse = u_LightColor * v_Color.rgb * nDotL;
     }
-    if (u_SecondLightSource) {
-        lightDirection = normalize(u_SecondLightDirection - v_Position);
-        nDotL = max(dot(lightDirection, normal), 0.0);
-        if (u_UseTextures) {
-            //diffuse = diffuse * 0.5;
-            diffuse += u_SecondLightColor * TexColor.rgb * nDotL * 1.2;
-        } else {
-            //diffuse = diffuse * 0.5;
-            diffuse += u_SecondLightColor * v_Color.rgb * nDotL;
-        }
-    }
     ambient = u_AmbientLight * v_Color.rgb;
     gl_FragColor = vec4(diffuse + ambient, v_Color.a);
 }
@@ -82,7 +71,6 @@ var g_z = 0;
 var g_x = 0;
 var g_y = 0;
 var g_changed = false;
-var g_sunset = false;
 
 var ANGLE_STEP = 3.0;
 
@@ -351,14 +339,6 @@ function check_animation_enabled() {
 }
 document.getElementById('enableAnimation').addEventListener('change', check_animation_enabled);
 check_animation_enabled();
-
-
-function check_sunset_mode() {
-    g_sunset = document.getElementById('enableSunset').checked;
-    g_changed = true;
-}
-document.getElementById('enableSunset').addEventListener('change', check_sunset_mode);
-check_sunset_mode();
 
 
 function lerp(y0, y1, t) {
@@ -745,7 +725,14 @@ function main() {
     var GrassTexture = gl.createTexture();
     GrassTexture.image = new Image();
     GrassTexture.image.onload = function() {
-        grass.texture_data = GrassTexture;
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, GrassTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, GrassTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+        grass.texture_unit = 5;
         grass.texture_coords = new Float32Array([
             5.0, 1.0,    0.0, 1.0,   0.0, 0.0,   5.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
@@ -754,17 +741,26 @@ function main() {
             0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    5.0, 0.0,   5.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
         ]);
-        grass.setup_texture_gl = (gl) => {
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        };
         g_changed = true;
     };
     GrassTexture.image.src = 'resources/grass.jpg';
 
     var door_angle = 0;
     var door_open  = true;
+    var dz = 0;
+    var dx = 0;
+
+    function animate_left_door(mm) {
+        mm.translate(1.5 - dx, -1, 12.625 + dz);
+        mm.rotate(-door_angle, 0, 1, 0);
+        mm.scale(1, 2, 0.125);
+    }
+
+    function animate_right_door(mm) {
+        mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
+        mm.rotate(door_angle, 0, 1, 0);
+        mm.scale(1, 2, 0.125);
+    }
 
     g_animations.push(function(dt) {
         if (door_open) {
@@ -780,20 +776,10 @@ function main() {
                 door_angle = 0;
             }
         }
-
-        var dz = Math.sin(deg2rad(door_angle));
-        var dx = 0.5 * Math.sin(deg2rad(door_angle));
-
-        entrance_door_left.transform(mm => {
-            mm.translate(1.5 - dx, -1, 12.625 + dz);
-            mm.rotate(-door_angle, 0, 1, 0);
-            mm.scale(1, 2, 0.125);
-        });
-        entrance_door_right.transform(mm => {
-            mm.translate(4 - 0.5 + dx, -1, 12.625 + dz);
-            mm.rotate(door_angle, 0, 1, 0);
-            mm.scale(1, 2, 0.125);
-        });
+        dz = Math.sin(deg2rad(door_angle));
+        dx = 0.5 * Math.sin(deg2rad(door_angle));
+        entrance_door_left.transform(animate_left_door);
+        entrance_door_right.transform(animate_right_door);
     });
 
     var road = unit_cube([1, 1, 1]);
@@ -804,7 +790,13 @@ function main() {
     var RoadTexture = gl.createTexture();
     RoadTexture.image = new Image();
     RoadTexture.image.onload = function() {
-        road.texture_data = RoadTexture;
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, RoadTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, RoadTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        road.texture_unit = 0;
         road.texture_coords = new Float32Array([
             5.0, 5.0,    0.0, 5.0,   0.0, 0.0,   5.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 5.0,    0.0, 0.0,   5.0, 0.0,   5.0, 5.0,  // v0-v3-v4-v5 right
@@ -813,9 +805,6 @@ function main() {
             0.0, 0.0,    5.0, 0.0,   5.0, 5.0,   0.0, 5.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    5.0, 0.0,   5.0, 5.0,   0.0, 5.0   // v4-v7-v6-v5 back
         ]);
-        road.setup_texture_gl = (gl) => {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        };
         g_changed = true;
     };
     RoadTexture.image.src = 'resources/road.jpg';
@@ -828,7 +817,14 @@ function main() {
     var PavementTexture = gl.createTexture();
     PavementTexture.image = new Image();
     PavementTexture.image.onload = function() {
-        pavement.texture_data = PavementTexture;
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, PavementTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, PavementTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        // end config
+        pavement.texture_unit = 1;
         pavement.texture_coords = new Float32Array([
             4.0, 4.0,    0.0, 4.0,   0.0, 0.0,   4.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 4.0,    0.0, 0.0,   4.0, 0.0,   4.0, 4.0,  // v0-v3-v4-v5 right
@@ -837,9 +833,6 @@ function main() {
             0.0, 0.0,    4.0, 0.0,   4.0, 4.0,   0.0, 4.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    4.0, 0.0,   4.0, 4.0,   0.0, 4.0   // v4-v7-v6-v5 back
         ]);
-        pavement.setup_texture_gl = (gl) => {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        };
         g_changed = true;
     };
     PavementTexture.image.src = 'resources/pavement.jpg';
@@ -847,7 +840,14 @@ function main() {
     var GlassTexture = gl.createTexture();
     GlassTexture.image = new Image();
     GlassTexture.image.onload = function() {
-        glass.texture_data = GlassTexture;
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, GlassTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, GlassTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        // end config
+        glass.texture_unit = 2;
         glass.texture_coords = new Float32Array([
             6.0, 1.0,    0.0, 1.0,   0.0, 0.0,   6.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 1.0,    0.0, 0.0,   8.0, 0.0,   8.0, 1.0,  // v0-v3-v4-v5 right
@@ -856,11 +856,6 @@ function main() {
             0.0, 0.0,    4.0, 0.0,   4.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    6.0, 0.0,   6.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
         ]);
-        glass.setup_texture_gl = (gl) => {
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        };
         entrance_glass.texture_coords = entrance_door_left.texture_coords = entrance_door_right.texture_coords = new Float32Array([
             1.0, 1.0,    0.0, 1.0,   0.0, 0.0,   1.0, 0.0,  // v0-v1-v2-v3 front
             0.0, 1.0,    0.0, 0.0,   1.0, 0.0,   1.0, 1.0,  // v0-v3-v4-v5 right
@@ -869,12 +864,9 @@ function main() {
             0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    1.0, 0.0,   1.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
         ]);
-        entrance_glass.texture_data = GlassTexture;
-        entrance_door_left.texture_data = GlassTexture;
-        entrance_door_right.texture_data = GlassTexture;
-        entrance_glass.setup_texture_gl = entrance_door_left.setup_texture_gl = entrance_door_right.setup_texture_gl = (gl) => {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        };
+        entrance_glass.texture_unit = 2;
+        entrance_door_left.texture_unit = 2;
+        entrance_door_right.texture_unit = 2;
         g_changed = true;
     };
     GlassTexture.image.src = 'resources/glass2.jpg';
@@ -882,11 +874,18 @@ function main() {
     var BrickTexture = gl.createTexture();
     BrickTexture.image = new Image();
     BrickTexture.image.onload = function() {
-        base1.texture_data = BrickTexture;
-        base2.texture_data = BrickTexture;
-        base3.texture_data = BrickTexture;
-        ramp_slab.texture_data = BrickTexture;
-        ramp_slope.texture_data = BrickTexture;
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, BrickTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, BrickTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        base1.texture_unit = 3;
+        base2.texture_unit = 3;
+        base3.texture_unit = 3;
+        ramp_slab.texture_unit = 3;
+        ramp_slope.texture_unit = 3;
 
         ramp_slab.texture_coords = new Float32Array([
             0.125, 0.125,    0.0, 0.125,   0.0, 0.0,   0.125, 0.0,  // v0-v1-v2-v3 front
@@ -913,15 +912,6 @@ function main() {
             0.0, 0.0,    4.0, 0.0,   4.0, 1.0,   0.0, 1.0,  // v7-v4-v3-v2 down
             0.0, 0.0,    2.0, 0.0,   2.0, 1.0,   0.0, 1.0   // v4-v7-v6-v5 back
         ]);
-
-        var setup_texture_gl = (gl) => {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        };
-        base1.setup_texture_gl = setup_texture_gl;
-        base2.setup_texture_gl = setup_texture_gl;
-        base3.setup_texture_gl = setup_texture_gl;
-        ramp_slab.setup_texture_gl = setup_texture_gl;
-        ramp_slope.setup_texture_gl = setup_texture_gl;
         g_changed = true;
     };
     BrickTexture.image.src = 'resources/brick.jpg';
@@ -940,8 +930,15 @@ function main() {
     var WallTexture = gl.createTexture();
     WallTexture.image = new Image();
     WallTexture.image.onload = function() {
-        wall1.texture_data = WallTexture;
-        wall2.texture_data = WallTexture;
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, WallTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, WallTexture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        wall1.texture_unit = 4;
+        wall2.texture_unit = 4;
         wall1.texture_coords = new Float32Array([
             0.25, 0.25,    0.0, 0.25,   0.0, 0.0,   0.25, 0.0,  // v0-v1-v2-v3 front
             0.0, 0.25,    0.0, 0.0,   2.0, 0.0,   2.0, 0.25,  // v0-v3-v4-v5 right
@@ -958,12 +955,6 @@ function main() {
             0.0, 0.0,    1.0, 0.0,   3.0, 0.25,   0.0, 0.25,  // v7-v4-v3-v2 down
             0.0, 0.0,    6.0, 0.0,   6.0, 0.25,   0.0, 0.25   // v4-v7-v6-v5 back
         ]);
-
-        var setup_texture_gl = (gl) => {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        };
-        wall1.setup_texture_gl = setup_texture_gl;
-        wall2.setup_texture_gl = setup_texture_gl;
         g_changed = true;
     };
     WallTexture.image.src = 'resources/wall.jpg';
@@ -1007,7 +998,7 @@ function mainLoop(gl) {
             for (var i = 0; i < g_animations.length; i++)
                 g_animations[i](dt);
         if (g_enable_animations || g_changed)
-            draw(gl, g_sunset);
+            draw(gl);
         g_changed = false;
         window.requestAnimationFrame(animate);
     }
@@ -1035,43 +1026,25 @@ function keydown(ev, gl) {
     g_changed = true;
 }
 
-var g_attr_cache = null;
+var g_uniforms = null;
 
-function draw(gl, sunset) {
+function draw(gl) {
     // Get the storage locations of u_ModelMatrix, u_ViewMatrix, and u_ProjMatrix
-    if (!g_attr_cache) {
-        g_attr_cache = {};
-        g_attr_cache.u_ViewMatrix           = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
-        g_attr_cache.u_ProjMatrix           = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
-        g_attr_cache.u_LightColor           = gl.getUniformLocation(gl.program, 'u_LightColor');
-        g_attr_cache.u_AmbientLight         = gl.getUniformLocation(gl.program, 'u_AmbientLight');
-        g_attr_cache.u_LightDirection       = gl.getUniformLocation(gl.program, 'u_LightDirection');
-        g_attr_cache.u_SecondLightSource    = gl.getUniformLocation(gl.program, 'u_SecondLightSource');
-        g_attr_cache.u_SecondLightDirection = gl.getUniformLocation(gl.program, 'u_SecondLightDirection');
-        g_attr_cache.u_SecondLightColor     = gl.getUniformLocation(gl.program, 'u_SecondLightColor');
+    if (!g_uniforms) {
+        g_uniforms = {};
+        g_uniforms.u_ViewMatrix           = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
+        g_uniforms.u_ProjMatrix           = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
+        g_uniforms.u_LightColor           = gl.getUniformLocation(gl.program, 'u_LightColor');
+        g_uniforms.u_AmbientLight         = gl.getUniformLocation(gl.program, 'u_AmbientLight');
+        g_uniforms.u_LightDirection       = gl.getUniformLocation(gl.program, 'u_LightDirection');
     }
     var viewMatrix = new Matrix4();  // The view matrix
     var projMatrix = new Matrix4();  // The projection matrix
 
-    // Second Light color
-    if (sunset) {
-        gl.uniform1i(g_attr_cache.u_SecondLightSource, true);
-        gl.uniform3f(g_attr_cache.u_SecondLightDirection, 10, 5, 80);
-        gl.uniform3f(g_attr_cache.u_SecondLightColor, 0.8, 0, 0);
-    } else {
-        gl.uniform1i(g_attr_cache.u_SecondLightSource, false);
-    }
-
     // Set Light color and direction
-    if (sunset) {
-        gl.uniform3f(g_attr_cache.u_LightDirection, -10, 5, 80);
-        gl.uniform3f(g_attr_cache.u_LightColor, 0, 0.8, 0);
-        gl.uniform3f(g_attr_cache.u_AmbientLight, 0, 0, 0);
-    } else {
-        gl.uniform3f(g_attr_cache.u_LightDirection, 10, 5, 80);
-        gl.uniform3f(g_attr_cache.u_LightColor, 1.0, 1.0, 1.0);
-        gl.uniform3f(g_attr_cache.u_AmbientLight, 0.1, 0.1, 0.1);
-    }
+    gl.uniform3f(g_uniforms.u_LightDirection, 10, 5, 80);
+    gl.uniform3f(g_uniforms.u_LightColor, 1.0, 1.0, 1.0);
+    gl.uniform3f(g_uniforms.u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
     viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
@@ -1080,8 +1053,8 @@ function draw(gl, sunset) {
 
     projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
-    gl.uniformMatrix4fv(g_attr_cache.u_ViewMatrix, false, viewMatrix.elements);
-    gl.uniformMatrix4fv(g_attr_cache.u_ProjMatrix, false, projMatrix.elements);
+    gl.uniformMatrix4fv(g_uniforms.u_ViewMatrix, false, viewMatrix.elements);
+    gl.uniformMatrix4fv(g_uniforms.u_ProjMatrix, false, projMatrix.elements);
 
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

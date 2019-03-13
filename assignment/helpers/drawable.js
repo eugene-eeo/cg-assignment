@@ -39,9 +39,8 @@ function drawable(vertices, colors, normals, indices) {
     this.normals  = normals;
     this.indices  = indices;
     // textures
-    this.texture_data = null;
+    this.texture_unit = null;
     this.texture_coords = null;
-    this.setup_texture_gl = function() {};
     // cache
     this._modelMatrix  = new Matrix4();
     this._normalMatrix = new Matrix4();
@@ -83,25 +82,20 @@ drawable.prototype.transform_inplace = function(fn) {
 drawable.prototype.writeToVertexBuffer = function(gl) {
     // texture support
     var u_UseTextures = lookupUniform(gl, 'u_UseTextures');
-    if (this.texture_data === null) {
+    var u_Sampler = lookupUniform(gl, 'u_Sampler');
+    if (this.texture_unit === null) {
         // need to disable so that previous lookup for a_TexCoords doesn't affect
         // the current one
         disableArrayBuffer(gl, 'a_TexCoords');
         gl.uniform1i(u_UseTextures, false);
     } else {
+        // enable textures
+        gl.uniform1i(u_UseTextures, true);
+        // set texture image
+        gl.uniform1i(u_Sampler, this.texture_unit);
         // bind texture coordinates
         if (!initArrayBuffer(gl, 'a_TexCoords', this.texture_coords, 2, gl.FLOAT))
             return false;
-        // enable textures
-        var u_Sampler = lookupUniform(gl, 'u_Sampler');
-        // activate texture unit and bind texture object
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.texture_data);
-        // set texture image
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, this.texture_data.image);
-        this.setup_texture_gl(gl);
-        gl.uniform1i(u_Sampler, 0);
-        gl.uniform1i(u_UseTextures, true);
     }
     // Write the vertex property to buffers (coordinates, colors and normals)
     if (!initArrayBuffer(gl, 'a_Position', this.vertices, 3, gl.FLOAT)) return false;
