@@ -78,7 +78,8 @@ var g_car_door1 = null;
 var g_car_boot = null;
 var g_entrance_left = null;
 var g_entrance_right = null;
-var g_animate = () => {};
+// animation function
+var g_animate = null;
 
 var ANGLE_STEP = 3.0;
 
@@ -961,7 +962,8 @@ function on_animate_clicked() {
     g_animate = function(dt) {
         t += 0.01 * (dt / 100);
         if (t > 1.0) {
-            g_animate = () => {};
+            g_animate = null;
+            return;
         }
         g_car.cached = false;
         g_changed = true;
@@ -997,14 +999,19 @@ function on_animate_clicked() {
 }
 
 
-document.getElementById('animate').onclick = on_animate_clicked;
+document.getElementById('animate').onclick = function() {
+    // check if we're in the middle of an animation
+    if (g_animate === null)
+        on_animate_clicked();
+};
 
 
 function mainLoop(gl) {
     var t_prev = 0;
     function animate(t) {
         t_prev = t_prev || t;
-        g_animate(t - t_prev);
+        if (g_animate)
+            g_animate(t - t_prev);
         t_prev = t;
         if (g_changed) {
             g_changed = false;
