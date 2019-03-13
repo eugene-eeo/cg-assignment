@@ -815,9 +815,6 @@ function main() {
         ]);
         road.setup_texture_gl = (gl) => {
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         };
         g_changed = true;
     };
@@ -842,9 +839,6 @@ function main() {
         ]);
         pavement.setup_texture_gl = (gl) => {
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         g_changed = true;
     };
@@ -880,7 +874,6 @@ function main() {
         entrance_door_right.texture_data = GlassTexture;
         entrance_glass.setup_texture_gl = entrance_door_left.setup_texture_gl = entrance_door_right.setup_texture_gl = (gl) => {
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         g_changed = true;
     };
@@ -923,10 +916,6 @@ function main() {
 
         var setup_texture_gl = (gl) => {
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         base1.setup_texture_gl = setup_texture_gl;
         base2.setup_texture_gl = setup_texture_gl;
@@ -972,9 +961,6 @@ function main() {
 
         var setup_texture_gl = (gl) => {
             gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         };
         wall1.setup_texture_gl = setup_texture_gl;
         wall2.setup_texture_gl = setup_texture_gl;
@@ -1099,5 +1085,6 @@ function draw(gl, sunset) {
 
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    g_drawables.forEach(d => d.draw(gl));
+    for (var i = 0; i < g_drawables.length; i++)
+        g_drawables[i].draw(gl);
 }

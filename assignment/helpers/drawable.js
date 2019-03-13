@@ -1,11 +1,18 @@
 !function() {
     var attrs = {};
+    var uniforms = {};
 
     function lookup(gl, attribute) {
         if (attrs[attribute] === undefined)
             attrs[attribute] = gl.getAttribLocation(gl.program, attribute);
         return attrs[attribute];
     }
+
+    window.lookupUniform = function(gl, u) {
+        if (uniforms[u] === undefined)
+            uniforms[u] = gl.getUniformLocation(gl.program, u);
+        return uniforms[u];
+    };
 
     window.initArrayBuffer = function(gl, attribute, data, num, type) {
         var buffer = gl.createBuffer();
@@ -75,7 +82,7 @@ drawable.prototype.transform_inplace = function(fn) {
 
 drawable.prototype.writeToVertexBuffer = function(gl) {
     // texture support
-    var u_UseTextures = gl.getUniformLocation(gl.program, 'u_UseTextures');
+    var u_UseTextures = lookupUniform(gl, 'u_UseTextures');
     if (this.texture_data === null) {
         // need to disable so that previous lookup for a_TexCoords doesn't affect
         // the current one
@@ -86,7 +93,7 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
         if (!initArrayBuffer(gl, 'a_TexCoords', this.texture_coords, 2, gl.FLOAT))
             return false;
         // enable textures
-        var u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler');
+        var u_Sampler = lookupUniform(gl, 'u_Sampler');
         // activate texture unit and bind texture object
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture_data);
@@ -102,8 +109,8 @@ drawable.prototype.writeToVertexBuffer = function(gl) {
     if (!initArrayBuffer(gl, 'a_Normal',   this.normals,  3, gl.FLOAT)) return false;
 
     // Write model matrix and normals
-    var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
-    var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
+    var u_ModelMatrix = lookupUniform(gl, 'u_ModelMatrix');
+    var u_NormalMatrix = lookupUniform(gl, 'u_NormalMatrix');
 
     gl.uniformMatrix4fv(u_ModelMatrix, false, this._modelMatrix.elements);
     gl.uniformMatrix4fv(u_NormalMatrix, false, this._normalMatrix.elements);
