@@ -285,6 +285,54 @@ function draw_car(gl, no_animation) {
 
     var t = 0;
     var t_step = 0.01;
+
+    root.grouped(m => {
+        if (t > 0.25) {
+            m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
+        }
+        m.translate(8, 0, -4);
+        m.rotate(90, 0, 1, 0);
+    });
+
+    boot.grouped(m => {
+        if (t <= 0.25) {
+            var angle = lerp(90, 0, t / 0.25);
+            var l = 4 + 0.125;
+            var dx = (l / 2) - (l / 2) * Math.cos(deg2rad(angle));
+            var dy = (l / 2) * Math.sin(deg2rad(angle));
+            m.translate(0, -1.8*dy, dx);
+            m.rotate(-angle, 1, 0, 0);
+        }
+    });
+
+    door1.transform(mm => {
+        if (t <= 0.25) {
+            var angle = lerp(90, 0, t / 0.25);
+            var dz = Math.sin(deg2rad(angle));
+            var dx = 0.5 * Math.sin(deg2rad(angle));
+            mm.translate(-2 - dx, -1.5, 0 - dz);
+            mm.rotate(-angle, 0, 1, 0);
+        } else {
+            mm.translate(-2, -1.5, 0);
+        }
+        mm.scale(0.125, 0.8, 1);
+    });
+
+    front_wheels.grouped(m => {
+        m.translate(0, -2, 2.5);
+        if (t > 0.25) {
+            m.rotate(lerp(0, -360, (t - 0.25) / 0.75), 1, 0, 0); // wheel spin
+        }
+    });
+    back_wheels.grouped(m => {
+        m.translate(0, -2, -2.5);
+        if (t > 0.25) {
+            var b = (t - 0.25) / 0.75;
+            m.rotate(lerp(0, -30, b), 0, 1, 0);  // wheel direction
+            m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
+        }
+    });
+
     g_animations.push(function(dt) {
         t += t_step * (dt / 100);
         if (t >= 1.0 || t <= 0.0) {
@@ -292,53 +340,7 @@ function draw_car(gl, no_animation) {
             if (t > 1.0) t = 1.0;
             else t = 0.0;
         }
-
-        root.grouped(m => {
-            if (t > 0.25) {
-                m.rotate(lerp(0, -45, (t - 0.25) / 0.75), 0, 1, 0);
-            }
-            m.translate(8, 0, -4);
-            m.rotate(90, 0, 1, 0);
-        });
-
-        boot.grouped(m => {
-            if (t <= 0.25) {
-                var angle = lerp(90, 0, t / 0.25);
-                var l = 4 + 0.125;
-                var dx = (l / 2) - (l / 2) * Math.cos(deg2rad(angle));
-                var dy = (l / 2) * Math.sin(deg2rad(angle));
-                m.translate(0, -1.8*dy, dx);
-                m.rotate(-angle, 1, 0, 0);
-            }
-        });
-
-        door1.transform(mm => {
-            if (t <= 0.25) {
-                var angle = lerp(90, 0, t / 0.25);
-                var dz = Math.sin(deg2rad(angle));
-                var dx = 0.5 * Math.sin(deg2rad(angle));
-                mm.translate(-2 - dx, -1.5, 0 - dz);
-                mm.rotate(-angle, 0, 1, 0);
-            } else {
-                mm.translate(-2, -1.5, 0);
-            }
-            mm.scale(0.125, 0.8, 1);
-        });
-
-        front_wheels.grouped(m => {
-            m.translate(0, -2, 2.5);
-            if (t > 0.25) {
-                m.rotate(lerp(0, -360, (t - 0.25) / 0.75), 1, 0, 0); // wheel spin
-            }
-        });
-        back_wheels.grouped(m => {
-            m.translate(0, -2, -2.5);
-            if (t > 0.25) {
-                var b = (t - 0.25) / 0.75;
-                m.rotate(lerp(0, -30, b), 0, 1, 0);  // wheel direction
-                m.rotate(lerp(0, -360, b), 1, 0, 0); // wheel spin
-            }
-        });
+        root.cached = false;
     });
 }
 

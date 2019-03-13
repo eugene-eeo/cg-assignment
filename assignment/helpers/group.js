@@ -4,6 +4,7 @@ function drawableTree(d) {
     this.f = () => {}; // apply only to our drawable
     this.g = () => {}; // apply to us and our children
     this.cached = false;
+    this.matrix = new Matrix4();
 }
 
 drawableTree.prototype = {
@@ -29,18 +30,18 @@ drawableTree.prototype = {
     transform_and_draw: function(gl, matrix, forced) {
         if (!this.cached) forced = true;
         if (forced) {
-            var mat = (new Matrix4()).set(matrix);
-            this.g(mat);
+            this.matrix.set(matrix);
+            this.g(this.matrix);
             if (this.drawable)
-                this.drawable.transform_inplace(m => this.f(m.set(mat)));
+                this.drawable.transform_inplace(m => this.f(m.set(this.matrix)));
             this.cached = true;
         }
         if (this.drawable)
             this.drawable.draw(gl);
         for (var i = 0; i < this.children.length; i++)
-            this.children[i].transform_and_draw(gl, mat, forced);
+            this.children[i].transform_and_draw(gl, this.matrix, forced);
     },
     draw: function(gl) {
-        this.transform_and_draw(gl, new Matrix4(), false);
+        this.transform_and_draw(gl, this.matrix.setIdentity(), false);
     },
 };
