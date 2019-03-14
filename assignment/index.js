@@ -1042,6 +1042,9 @@ function keydown(ev, gl) {
     g_changed = true;
 }
 
+var g_viewMatrix = new Matrix4();
+var g_projMatrix = new Matrix4();
+
 function draw(gl) {
     // Get the storage locations of u_ModelMatrix, u_ViewMatrix, and u_ProjMatrix
     var u_ViewMatrix     = lookupUniform(gl, 'u_ViewMatrix');
@@ -1049,8 +1052,6 @@ function draw(gl) {
     var u_LightColor     = lookupUniform(gl, 'u_LightColor');
     var u_AmbientLight   = lookupUniform(gl, 'u_AmbientLight');
     var u_LightDirection = lookupUniform(gl, 'u_LightDirection');
-    var viewMatrix = new Matrix4();  // The view matrix
-    var projMatrix = new Matrix4();  // The projection matrix
 
     // Set Light color and direction
     gl.uniform3f(u_LightDirection, 10, 5, 80);
@@ -1058,14 +1059,14 @@ function draw(gl) {
     gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
-    viewMatrix.rotate(g_xAngle, 1, 0, 0);
-    viewMatrix.rotate(g_yAngle, 0, 1, 0);
+    g_viewMatrix.setLookAt(10 + g_x, 0 + g_y, 60 + g_z, 0, 0, -100 - g_z, 0, 1, 0);
+    g_viewMatrix.rotate(g_xAngle, 1, 0, 0);
+    g_viewMatrix.rotate(g_yAngle, 0, 1, 0);
 
-    projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
+    g_projMatrix.setPerspective(30, g_canvas.width/g_canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
-    gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
-    gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
+    gl.uniformMatrix4fv(u_ViewMatrix, false, g_viewMatrix.elements);
+    gl.uniformMatrix4fv(u_ProjMatrix, false, g_projMatrix.elements);
 
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
