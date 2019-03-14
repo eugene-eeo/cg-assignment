@@ -23,34 +23,27 @@ drawableTree.prototype = {
         this.g = g;
         this.cached = false;
     },
+    tf: function(m) {
+        this.f(m.set(this.matrix));
+    },
     // assumption: we always call draw on the root of
     // the tree, so any uncached transformations will
-    // propagate to us. otherwise this function is not
-    // correct in general.
-    transform_and_draw: function(matrix, forced) {
+    // propagate to us.
+    transform_and_draw: function(gl, matrix, forced) {
         if (!this.cached) forced = true;
-        if (forced) {
-            this.matrix.set(matrix);
-            this.g(this.matrix);
-            if (this.drawable)
-                this.drawable.transform_inplace(m => this.f(m.set(this.matrix)));
-            this.cached = true;
+        this.cached = true;
+        this.matrix.set(matrix);
+        this.g(this.matrix);
+        if (this.drawable) {
+            if (forced)
+                this.drawable.transform_inplace(this.tf.bind(this));
+            this.drawable.draw(gl);
         }
         for (var i = 0; i < this.children.length; i++)
-            this.children[i].transform_and_draw(this.matrix, forced);
-    },
-    just_draw: function(gl) {
-        var stack = [this];
-        while (stack.length > 0) {
-            var d = stack.pop();
-            if (d.drawable)
-                d.drawable.draw(gl);
-            for (var i = 0; i < d.children.length; i++)
-                stack.push(d.children[i]);
-        }
+            this.children[i].transform_and_draw(gl, this.matrix, forced);
     },
     draw: function(gl) {
-        this.transform_and_draw(new Matrix4(), false);
-        this.just_draw(gl);
+        this.matrix.setIdentity();
+        this.transform_and_draw(gl, this.matrix, false);
     },
 };
